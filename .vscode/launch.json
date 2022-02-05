@@ -1,0 +1,25 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Launch Program",
+			"skipFiles": [
+				"<node_internals>/**",
+				"${workspaceFolder}/node_modules/**/*.js"
+			],
+			"program": "${workspaceFolder}/index.ts",
+			"preLaunchTask": "tsc: build",
+			"outFiles": [
+				"${workspaceFolder}/dist/**/*.js"
+			],
+			"smartStep": true,
+			"env": {
+				// Required to emulate GHA runner context:
+				"RUNNER_TEMP": "/Users/danielrosenberg/Temp/runner_temp",
+				"RUNNER_TOOL_CACHE": "/Users/danielrosenberg/Temp/runner_tool_cache"
+			}
+		}
+	]
+}

@@ -1,0 +1,17 @@
+name: "OrgFlow: Salesforce DevOps for GitHub"
+author: OrgFlow GmbH
+description: Use OrgFlow CLI from GitHub Actions to build your Salesforce DevOps pipeline and manage your deployments from GitHub
+inputs:
+  version:
+    description: Version of OrgFlow to install. Can be specified as major '1', minor '1.1' or patch '1.1.1'; latest matching version will be installed. Omit to install latest available version.
+    required: false
+  includePrerelease:
+    description: Include prerelease versions when determining latest available version.
+    required: false
+    default: "false"
+outputs:
+  version:
+    description: Exact version of OrgFlow that was installed and configured.
+runs:
+  using: node16
+  main: dist/index.js

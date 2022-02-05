@@ -1,0 +1,35 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "install",
+			"problemMatcher": [],
+			"label": "npm: install",
+		},
+		{
+			// Remember to execute this build task before committing, as it calls the ncc build in
+			// package.json to bundle referenced modules into a single output file, so we don't need
+			// to keep node_modules in version control.
+			"type": "npm",
+			"script": "build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [],
+			"label": "npm: build",
+		},
+		{
+			// Use this build task for debugging; the ncc build in package.json apparently produces
+			// source maps that the VS Code TypeScript debugger doesn't understand.
+			"type": "typescript",
+			"tsconfig": "tsconfig.json",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build",
+			"label": "tsc: build"
+		}
+	]
+}
