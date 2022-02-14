@@ -9,28 +9,32 @@ import { getRuntimeId } from "./utils";
 const productId = "cli"; // Download service product identifier
 const toolName = "orgflow"; // GHA tool cache key
 
-export async function install(versionSpec: string | null, includePrerelease: boolean)
+export async function install(versionSpec: string | null, includePrerelease: boolean, skipInstall: boolean)
 {
-	const runtimeId = getRuntimeId();
-	let latestZipFileInfoUrl = new URL(`https://orgflow-dv2-apim.azure-api.net/download/v2/${productId}/${runtimeId}/latest/zip`);
-	//let latestZipFileInfoUrl = `https://prod.orgflow.app/download/v2/${productId}/${runtimeId}/latest/zip`;
-
-	if (versionSpec)
+	console.log("Checking installed version...");
+	let installedVersion = await getInstalledVersion();
+	if (installedVersion)
 	{
-		console.log(`Using version filter '${versionSpec}'.`);
-		latestZipFileInfoUrl.searchParams.append("versionFilter", versionSpec);
+		console.log(`Version '${installedVersion}' is installed.`);
+	}
+	else
+	{
+		console.log("No installed version was detected.");
 	}
 
-	if (includePrerelease)
+	if (skipInstall)
 	{
-		console.log("Including prerelease versions in search.");
-		latestZipFileInfoUrl.searchParams.append("includePrerelease", "true");
+		console.log("skipInstall=true; skipping install.");
+		return installedVersion;
 	}
 
-	console.log("Checking service for latest version...");
-	const response = await axios.get<FileInfo>(latestZipFileInfoUrl.href);
-	const latestZipFileInfo = response.data;
-	console.log(`Latest available version: ${latestZipFileInfo.versionString}`);
+	const latestZipFileInfo = await getLatestZipFileInfo(versionSpec, includePrerelease);
+
+	if (installedVersion === latestZipFileInfo.versionString)
+	{
+		console.log(`Version '${installedVersion}' is already installed; skipping installation.`);
+		return installedVersion;
+	}
 
 	const allVersions = cache.findAllVersions(toolName);
 	console.log(`Versions in tool cache: ${allVersions}`);
@@ -55,30 +59,79 @@ export async function install(versionSpec: string | null, includePrerelease: boo
 	const cliPath = await io.which("orgflow");
 	console.log(`CLI on PATH: '${cliPath}'.`);
 
-	console.log("Running 'orgflow --version' to verify installation...");
+	// Re-check installed version after installation:
+	installedVersion = await getInstalledVersion();
 
-	let stdout = "";
-	let stderr = "";
-	const exitCode = await exec.exec("orgflow", ["--version"], {
-		listeners: {
-			stdout: data => stdout += data.toString().trim(),
-			stderr: data => stderr += data.toString().trim(),
-		}
-	});
-
-	if (exitCode !== 0)
+	if (installedVersion !== latestZipFileInfo.versionString)
 	{
-		throw new Error(`'orgflow --version' failed with exit code ${exitCode}; CLI was likely not installed correctly. STDERR: ${stderr}`);
+		throw new Error(`Detected installed version '${installedVersion}' but expected '${latestZipFileInfo.versionString}'; CLI was likely not installed correctly.`);
 	}
-	else
+
+	return installedVersion;
+}
+
+async function getInstalledVersion()
+{
+	console.log("Running 'orgflow --version' to get current installed version...");
+
+	let installedVersion: string = null;
+
+	try
 	{
+		let stdout: string = "";
+		let stderr: string = "";
+
+		const exitCode = await exec.exec("orgflow", ["--version"], {
+			ignoreReturnCode: true,
+			listeners: {
+				stdout: data => stdout += data.toString().trim(),
+				stderr: data => stderr += data.toString().trim(),
+			}
+		});
+
+		if (exitCode !== 0)
+		{
+			console.log(`'orgflow --version' failed with exit code ${exitCode}; CLI is likely not installed correctly. STDERR: ${stderr}`);
+			return null;
+		}
+
 		console.log(`'orgflow --version' returned '${stdout}'.`);
 
-		if (stdout != latestZipFileInfo.versionString)
-		{
-			throw new Error(`'orgflow --version' returned '${stdout}' but we expected '${latestZipFileInfo.versionString}; CLI was likely not installed correctly. STDERR: ${stderr}`);
-		}
+		installedVersion = stdout;
+	}
+	catch (error)
+	{
+		console.log("Error while running 'orgflow --version'; CLI is likely not installed correctly.");
+		console.log(error);
+		return null;
 	}
 
-	return stdout;
+	return installedVersion;
+}
+
+async function getLatestZipFileInfo(versionSpec: string, includePrerelease: boolean)
+{
+	console.log("Checking service for latest available version...");
+
+	const runtimeId = getRuntimeId();
+	const latestZipFileInfoUrl = new URL(`https://orgflow-dv2-apim.azure-api.net/download/v2/${productId}/${runtimeId}/latest/zip`);
+	//let latestZipFileInfoUrl = `https://prod.orgflow.app/download/v2/${productId}/${runtimeId}/latest/zip`;
+
+	if (versionSpec)
+	{
+		console.log(`Using version filter '${versionSpec}'.`);
+		latestZipFileInfoUrl.searchParams.append("versionFilter", versionSpec);
+	}
+
+	if (includePrerelease)
+	{
+		console.log("Including prerelease versions in search.");
+		latestZipFileInfoUrl.searchParams.append("includePrerelease", "true");
+	}
+
+	const response = await axios.get<FileInfo>(latestZipFileInfoUrl.href);
+	const latestZipFileInfo = response.data;
+	console.log(`Latest available version: ${latestZipFileInfo.versionString}`);
+
+	return latestZipFileInfo;
 }
