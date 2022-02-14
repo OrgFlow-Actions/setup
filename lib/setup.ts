@@ -76,34 +76,41 @@ async function getInstalledVersion()
 
 	let installedVersion: string = null;
 
-	try
+	if (!await io.which("orgflow"))
 	{
-		let stdout: string = "";
-		let stderr: string = "";
-
-		const exitCode = await exec.exec("orgflow", ["--version"], {
-			ignoreReturnCode: true,
-			listeners: {
-				stdout: data => stdout += data.toString().trim(),
-				stderr: data => stderr += data.toString().trim(),
-			}
-		});
-
-		if (exitCode !== 0)
+		console.log("Executable 'orgflow' could not be found; no installed version.");
+	}
+	else
+	{
+		try
 		{
-			console.log(`'orgflow --version' failed with exit code ${exitCode}; CLI is likely not installed correctly. STDERR: ${stderr}`);
+			let stdout: string = "";
+			let stderr: string = "";
+
+			const exitCode = await exec.exec("orgflow", ["--version"], {
+				ignoreReturnCode: true,
+				listeners: {
+					stdout: data => stdout += data.toString().trim(),
+					stderr: data => stderr += data.toString().trim(),
+				}
+			});
+
+			if (exitCode !== 0)
+			{
+				console.log(`'orgflow --version' failed with exit code ${exitCode}; CLI is likely not installed correctly. STDERR: ${stderr}`);
+				return null;
+			}
+
+			console.log(`'orgflow --version' returned '${stdout}'.`);
+
+			installedVersion = stdout;
+		}
+		catch (error)
+		{
+			console.log("Error while running 'orgflow --version'; CLI is likely not installed correctly.");
+			console.log(error);
 			return null;
 		}
-
-		console.log(`'orgflow --version' returned '${stdout}'.`);
-
-		installedVersion = stdout;
-	}
-	catch (error)
-	{
-		console.log("Error while running 'orgflow --version'; CLI is likely not installed correctly.");
-		console.log(error);
-		return null;
 	}
 
 	return installedVersion;
