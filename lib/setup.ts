@@ -2,6 +2,8 @@ import * as core from "@actions/core";
 import * as cache from "@actions/tool-cache";
 import * as io from "@actions/io";
 import * as exec from "@actions/exec";
+import { createWriteStream } from "fs";
+import { devNull } from "os";
 import axios from "axios";
 import { FileInfo } from "./types";
 import { getRuntimeId } from "./utils";
@@ -79,6 +81,7 @@ export async function setLicenseKey(licenseKey: string)
 	// Use the stack:list command to set license key (we currently don't have a better way).
 	const exitCode = await exec.exec("orgflow", ["stack:list", `--licenseKey=${licenseKey}`], {
 		ignoreReturnCode: true,
+		outStream: createWriteStream(devNull), // Output from this command may reveal lots of info and should not end up in workflow logs
 		listeners: {
 			stderr: data => stderr += data.toString().trim(),
 		}

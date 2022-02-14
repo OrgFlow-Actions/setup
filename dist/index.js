@@ -8537,6 +8537,8 @@ const core = __nccwpck_require__(6024);
 const cache = __nccwpck_require__(3594);
 const io = __nccwpck_require__(6202);
 const exec = __nccwpck_require__(2423);
+const fs_1 = __nccwpck_require__(7147);
+const os_1 = __nccwpck_require__(2037);
 const axios_1 = __nccwpck_require__(992);
 const utils_1 = __nccwpck_require__(4260);
 const productId = "cli"; // Download service product identifier
@@ -8593,6 +8595,7 @@ function setLicenseKey(licenseKey) {
         // Use the stack:list command to set license key (we currently don't have a better way).
         const exitCode = yield exec.exec("orgflow", ["stack:list", `--licenseKey=${licenseKey}`], {
             ignoreReturnCode: true,
+            outStream: (0, fs_1.createWriteStream)(os_1.devNull),
             listeners: {
                 stderr: data => stderr += data.toString().trim(),
             }
