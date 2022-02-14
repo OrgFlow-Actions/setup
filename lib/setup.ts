@@ -82,7 +82,6 @@ export async function setLicenseKey(licenseKey: string)
 	const exitCode = await exec.exec("orgflow", ["stack:list", `--licenseKey=${licenseKey}`], {
 		ignoreReturnCode: true,
 		outStream: createWriteStream(devNull), // Output from this command may reveal lots of info and should not end up in workflow logs
-		errStream: process.stderr,
 		listeners: {
 			stderr: data => stderr += data.toString().trim(),
 		}
