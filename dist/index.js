@@ -8489,8 +8489,8 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const versionSpec = core.getInput("version");
-            const includePrerelease = core.getInput("includePrerelease") ? // getBooleanInput() will throw if input is not present, so guard against that
-                core.getBooleanInput("includePrerelease") :
+            const includePrerelease = core.getInput("include-prerelease") ? // getBooleanInput() will throw if input is not present, so guard against that
+                core.getBooleanInput("include-prerelease") :
                 false;
             const installedVersion = yield (0, setup_1.install)(versionSpec, includePrerelease);
             core.setOutput("version", installedVersion);

@@ -7,8 +7,8 @@ export async function run()
 	{
 		const versionSpec = core.getInput("version");
 		const includePrerelease =
-			core.getInput("includePrerelease") ? // getBooleanInput() will throw if input is not present, so guard against that
-				core.getBooleanInput("includePrerelease") :
+			core.getInput("include-prerelease") ? // getBooleanInput() will throw if input is not present, so guard against that
+				core.getBooleanInput("include-prerelease") :
 				false;
 
 		const installedVersion = await install(versionSpec, includePrerelease);
