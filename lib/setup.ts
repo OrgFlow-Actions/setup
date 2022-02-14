@@ -70,6 +70,28 @@ export async function install(versionSpec: string | null, includePrerelease: boo
 	return installedVersion;
 }
 
+export async function setLicenseKey(licenseKey: string)
+{
+	console.log("Validating license key...");
+
+	let stderr: string = "";
+
+	// Use the stack:list command to set license key (we currently don't have a better way).
+	const exitCode = await exec.exec("orgflow", ["stack:list", `--licenseKey=${licenseKey}`], {
+		ignoreReturnCode: true,
+		listeners: {
+			stderr: data => stderr += data.toString().trim(),
+		}
+	});
+
+	if (exitCode !== 0)
+	{
+		throw new Error(`'orgflow --licenseKey' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+	}
+
+	console.log("License key was successfully validated and saved.");
+}
+
 async function getInstalledVersion()
 {
 	console.log("Running 'orgflow --version' to get current installed version...");

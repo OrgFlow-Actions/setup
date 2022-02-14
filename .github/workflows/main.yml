@@ -12,5 +12,8 @@ jobs:
         id: setup
         with:
           version: "1.1"
+          license-key: "6E5C5DBE-DC7D-488C-8930-BFD6443D714E"
+        env:
+          ORGFLOW_ACCEPTEULA: "true"
       - name: Print installed version
         run: echo "Version ${{ steps.setup.outputs.version }} was installed."

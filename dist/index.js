@@ -8491,12 +8491,17 @@ function run() {
             const versionSpec = core.getInput("version");
             const includePrerelease = core.getInput("include-prerelease") ? // getBooleanInput() will throw if input is not present, so guard against that
                 core.getBooleanInput("include-prerelease") :
-                true;
+                false;
             const skipInstall = core.getInput("skip-install") ? // getBooleanInput() will throw if input is not present, so guard against that
                 core.getBooleanInput("skip-install") :
                 false;
             const installedVersion = yield (0, setup_1.install)(versionSpec, includePrerelease, skipInstall);
             core.setOutput("version", installedVersion);
+            const licenseKey = core.getInput("license-key");
+            if (!licenseKey) {
+                throw new Error("Input value 'license-key' is required.");
+            }
+            yield (0, setup_1.setLicenseKey)(licenseKey);
             // TODO:
             // Set up Git configuration if instructed
             // Set up SFDC auth if instructed
@@ -8527,7 +8532,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.install = void 0;
+exports.setLicenseKey = exports.install = void 0;
 const core = __nccwpck_require__(6024);
 const cache = __nccwpck_require__(3594);
 const io = __nccwpck_require__(6202);
@@ -8581,31 +8586,54 @@ function install(versionSpec, includePrerelease, skipInstall) {
     });
 }
 exports.install = install;
+function setLicenseKey(licenseKey) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("Validating license key...");
+        let stderr = "";
+        // Use the stack:list command to set license key (we currently don't have a better way).
+        const exitCode = yield exec.exec("orgflow", ["stack:list", `--licenseKey=${licenseKey}`], {
+            ignoreReturnCode: true,
+            listeners: {
+                stderr: data => stderr += data.toString().trim(),
+            }
+        });
+        if (exitCode !== 0) {
+            throw new Error(`'orgflow --licenseKey' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+        }
+        console.log("License key was successfully validated and saved.");
+    });
+}
+exports.setLicenseKey = setLicenseKey;
 function getInstalledVersion() {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Running 'orgflow --version' to get current installed version...");
         let installedVersion = null;
-        try {
-            let stdout = "";
-            let stderr = "";
-            const exitCode = yield exec.exec("orgflow", ["--version"], {
-                ignoreReturnCode: true,
-                listeners: {
-                    stdout: data => stdout += data.toString().trim(),
-                    stderr: data => stderr += data.toString().trim(),
+        if (!(yield io.which("orgflow"))) {
+            console.log("Executable 'orgflow' could not be found; no installed version.");
+        }
+        else {
+            try {
+                let stdout = "";
+                let stderr = "";
+                const exitCode = yield exec.exec("orgflow", ["--version"], {
+                    ignoreReturnCode: true,
+                    listeners: {
+                        stdout: data => stdout += data.toString().trim(),
+                        stderr: data => stderr += data.toString().trim(),
+                    }
+                });
+                if (exitCode !== 0) {
+                    console.log(`'orgflow --version' failed with exit code ${exitCode}; CLI is likely not installed correctly. STDERR: ${stderr}`);
+                    return null;
                 }
-            });
-            if (exitCode !== 0) {
-                console.log(`'orgflow --version' failed with exit code ${exitCode}; CLI is likely not installed correctly. STDERR: ${stderr}`);
+                console.log(`'orgflow --version' returned '${stdout}'.`);
+                installedVersion = stdout;
+            }
+            catch (error) {
+                console.log("Error while running 'orgflow --version'; CLI is likely not installed correctly.");
+                console.log(error);
                 return null;
             }
-            console.log(`'orgflow --version' returned '${stdout}'.`);
-            installedVersion = stdout;
-        }
-        catch (error) {
-            console.log("Error while running 'orgflow --version'; CLI is likely not installed correctly.");
-            console.log(error);
-            return null;
         }
         return installedVersion;
     });

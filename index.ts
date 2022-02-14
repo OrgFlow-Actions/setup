@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import { install } from "./lib/setup";
+import { install, setLicenseKey } from "./lib/setup";
 
 export async function run()
 {
@@ -9,7 +9,7 @@ export async function run()
 		const includePrerelease =
 			core.getInput("include-prerelease") ? // getBooleanInput() will throw if input is not present, so guard against that
 				core.getBooleanInput("include-prerelease") :
-				true;
+				false;
 		const skipInstall =
 			core.getInput("skip-install") ? // getBooleanInput() will throw if input is not present, so guard against that
 				core.getBooleanInput("skip-install") :
@@ -18,6 +18,14 @@ export async function run()
 		const installedVersion = await install(versionSpec, includePrerelease, skipInstall);
 
 		core.setOutput("version", installedVersion);
+
+		const licenseKey = core.getInput("license-key");
+		if (!licenseKey)
+		{
+			throw new Error("Input value 'license-key' is required.");
+		}
+
+		await setLicenseKey(licenseKey);
 
 		// TODO:
 		// Set up Git configuration if instructed
