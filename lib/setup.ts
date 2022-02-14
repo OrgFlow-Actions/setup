@@ -158,7 +158,12 @@ async function getLatestZipFileInfo(versionSpec: string, includePrerelease: bool
 		latestZipFileInfoUrl.searchParams.append("includePrerelease", "true");
 	}
 
-	const response = await axios.get<FileInfo>(latestZipFileInfoUrl.href);
+	const response = await axios.get<FileInfo>(latestZipFileInfoUrl.href, { validateStatus: status => status == 200 || status == 404 });
+	if (response.status == 404)
+	{
+		throw new Error(`No available version matching version spec '${versionSpec}' was found in download service.`);
+	}
+
 	const latestZipFileInfo = response.data;
 	console.log(`Latest available version: ${latestZipFileInfo.versionString}`);
 
