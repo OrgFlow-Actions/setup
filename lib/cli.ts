@@ -75,3 +75,92 @@ export async function setLicenseKey(licenseKey: string)
 
 	console.log("License key was successfully validated and saved.");
 }
+
+export async function createEncryptionKey(stackName: string)
+{
+	console.log("Creating new encryption key...");
+
+	let encryptionKey: string = null;
+
+	let stdout: string = "";
+	let stderr: string = "";
+
+	const exitCode = await exec.exec("orgflow",
+		[
+			"auth:key:create",
+			"--output=flat"
+		],
+		{
+			ignoreReturnCode: true,
+			listeners: {
+				stdout: data => stdout += data.toString().trim(),
+				stderr: data => stderr += data.toString().trim(),
+			}
+		});
+
+	if (exitCode !== 0)
+	{
+		throw new Error(`'orgflow auth:key:create' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+	}
+
+	encryptionKey = stdout;
+
+	console.log("New encryption key was successfully created.");
+
+	return encryptionKey;
+}
+
+export async function saveEncryptionKey(encryptionKey: string, stackName: string)
+{
+	console.log(`Saving encryption key locally for stack '${stackName}'...`);
+
+	let stderr: string = "";
+
+	const exitCode = await exec.exec("orgflow",
+		[
+			"auth:key:save",
+			`--encryptionKey=${encryptionKey}`,
+			`--stack=${stackName}`,
+		],
+		{
+			ignoreReturnCode: true,
+			listeners: {
+				stderr: data => stderr += data.toString().trim(),
+			}
+		});
+
+	if (exitCode !== 0)
+	{
+		throw new Error(`'orgflow auth:key:save' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+	}
+
+	console.log(`Encryption key was saved successfully for stack '${stackName}'.`);
+}
+
+export async function saveSalesforceCredentials(username: string, password: string, stackName: string)
+{
+	console.log(`Saving Salesforce credentials locally for stack '${stackName}'...`);
+
+	let stderr: string = "";
+
+	const exitCode = await exec.exec("orgflow",
+		[
+			"auth:salesforce:save",
+			`--username=${username}`,
+			`--password=${password}`,
+			`--stack=${stackName}`,
+		],
+		{
+			ignoreReturnCode: true,
+			listeners: {
+				stderr: data => stderr += data.toString().trim(),
+			}
+		});
+
+	if (exitCode !== 0)
+	{
+		throw new Error(`'orgflow auth:salesforce:save' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+	}
+
+	console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
+}

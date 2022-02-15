@@ -12,7 +12,10 @@ jobs:
         id: setup
         with:
           version: "1.3"
-          license-key: "3364ACFE-5F05-4D72-AC45-3D0379240F97"
+          license-key: ${{ secrets.ORGFLOW_LICENSEKEY }}
+          salesforce-username: ${{ secrets.SALESFORCE_USERNAME }}
+          salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
+          stack-name: ${{ secrets.TestStackName }} # TODO: Make this an organization-level secret
         env:
           ORGFLOW_ACCEPTEULA: "true"
       - name: Print installed version

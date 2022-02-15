@@ -8473,8 +8473,7 @@ module.exports = v4;
 "use strict";
 
 /*
-** This module is the action's main entry point and drives the process to set up and
-** configure OrgFlow locally on a runner in a GitHub Actions context.
+** This module is the action's main entry point.
 */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8505,12 +8504,27 @@ function run() {
             if (!licenseKey) {
                 throw new Error("Input value 'license-key' is required.");
             }
+            const salesforceUsername = core.getInput("salesforce-username");
+            const salesforcePassword = core.getInput("salesforce-password");
+            if (!!salesforceUsername !== !!salesforcePassword) {
+                throw new Error("Either both or neither of inputs 'salesforce-username' and 'salesforce-password' must have a value.");
+            }
+            const stackName = core.getInput("stack-name");
+            if (!stackName && !!salesforcePassword) {
+                throw new Error("Input value 'stack-name' is required when saving Salesforce credentials.");
+            }
             const installedVersion = yield (0, install_1.install)(versionSpec, includePrerelease, skipInstall);
             core.setOutput("version", installedVersion);
             yield (0, cli_1.setLicenseKey)(licenseKey);
+            if (salesforcePassword) {
+                const encryptionKey = yield (0, cli_1.createEncryptionKey)(stackName);
+                yield (0, cli_1.saveEncryptionKey)(encryptionKey, stackName);
+                yield (0, cli_1.saveSalesforceCredentials)(salesforceUsername, salesforcePassword, stackName);
+                core.setSecret(encryptionKey); // Mask encryption key in logs
+                core.setOutput("encryption-key", encryptionKey);
+            }
             // TODO:
             // Set up Git configuration if instructed
-            // Set up SFDC auth if instructed
         }
         catch (error) {
             core.setFailed(error.message);
@@ -8541,7 +8555,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setLicenseKey = exports.getInstalledVersion = void 0;
+exports.saveSalesforceCredentials = exports.saveEncryptionKey = exports.createEncryptionKey = exports.setLicenseKey = exports.getInstalledVersion = void 0;
 const io = __nccwpck_require__(6202);
 const exec = __nccwpck_require__(2423);
 const fs_1 = __nccwpck_require__(7147);
@@ -8600,6 +8614,74 @@ function setLicenseKey(licenseKey) {
     });
 }
 exports.setLicenseKey = setLicenseKey;
+function createEncryptionKey(stackName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("Creating new encryption key...");
+        let encryptionKey = null;
+        let stdout = "";
+        let stderr = "";
+        const exitCode = yield exec.exec("orgflow", [
+            "auth:key:create",
+            "--output=flat"
+        ], {
+            ignoreReturnCode: true,
+            listeners: {
+                stdout: data => stdout += data.toString().trim(),
+                stderr: data => stderr += data.toString().trim(),
+            }
+        });
+        if (exitCode !== 0) {
+            throw new Error(`'orgflow auth:key:create' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+        }
+        encryptionKey = stdout;
+        console.log("New encryption key was successfully created.");
+        return encryptionKey;
+    });
+}
+exports.createEncryptionKey = createEncryptionKey;
+function saveEncryptionKey(encryptionKey, stackName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Saving encryption key locally for stack '${stackName}'...`);
+        let stderr = "";
+        const exitCode = yield exec.exec("orgflow", [
+            "auth:key:save",
+            `--encryptionKey=${encryptionKey}`,
+            `--stack=${stackName}`,
+        ], {
+            ignoreReturnCode: true,
+            listeners: {
+                stderr: data => stderr += data.toString().trim(),
+            }
+        });
+        if (exitCode !== 0) {
+            throw new Error(`'orgflow auth:key:save' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+        }
+        console.log(`Encryption key was saved successfully for stack '${stackName}'.`);
+    });
+}
+exports.saveEncryptionKey = saveEncryptionKey;
+function saveSalesforceCredentials(username, password, stackName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Saving Salesforce credentials locally for stack '${stackName}'...`);
+        let stderr = "";
+        const exitCode = yield exec.exec("orgflow", [
+            "auth:salesforce:save",
+            `--username=${username}`,
+            `--password=${password}`,
+            `--stack=${stackName}`,
+        ], {
+            ignoreReturnCode: true,
+            listeners: {
+                stderr: data => stderr += data.toString().trim(),
+            }
+        });
+        if (exitCode !== 0) {
+            throw new Error(`'orgflow auth:salesforce:save' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+        }
+        console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
+    });
+}
+exports.saveSalesforceCredentials = saveSalesforceCredentials;
 
 
 /***/ }),
