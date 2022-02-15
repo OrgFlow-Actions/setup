@@ -1,3 +1,7 @@
+/*
+** This module provides reusable types.
+*/
+
 export interface FileInfo
 {
 	fullName: string,

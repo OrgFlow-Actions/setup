@@ -1,3 +1,7 @@
+/*
+** This module provides low-level reusable utility functions.
+*/
+
 import { arch, platform } from "os";
 
 export function getRuntimeId()

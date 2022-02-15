@@ -8472,6 +8472,10 @@ module.exports = v4;
 
 "use strict";
 
+/*
+** This module is the action's main entry point and drives the process to set up and
+** configure OrgFlow locally on a runner in a GitHub Actions context.
+*/
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8484,10 +8488,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __nccwpck_require__(6024);
-const setup_1 = __nccwpck_require__(4403);
+const install_1 = __nccwpck_require__(4067);
+const cli_1 = __nccwpck_require__(4657);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            // Gather and validate input:
             const versionSpec = core.getInput("version");
             const includePrerelease = core.getInput("include-prerelease") ? // getBooleanInput() will throw if input is not present, so guard against that
                 core.getBooleanInput("include-prerelease") :
@@ -8495,13 +8501,13 @@ function run() {
             const skipInstall = core.getInput("skip-install") ? // getBooleanInput() will throw if input is not present, so guard against that
                 core.getBooleanInput("skip-install") :
                 false;
-            const installedVersion = yield (0, setup_1.install)(versionSpec, includePrerelease, skipInstall);
-            core.setOutput("version", installedVersion);
             const licenseKey = core.getInput("license-key");
             if (!licenseKey) {
                 throw new Error("Input value 'license-key' is required.");
             }
-            yield (0, setup_1.setLicenseKey)(licenseKey);
+            const installedVersion = yield (0, install_1.install)(versionSpec, includePrerelease, skipInstall);
+            core.setOutput("version", installedVersion);
+            yield (0, cli_1.setLicenseKey)(licenseKey);
             // TODO:
             // Set up Git configuration if instructed
             // Set up SFDC auth if instructed
@@ -8517,11 +8523,14 @@ run();
 
 /***/ }),
 
-/***/ 4403:
+/***/ 4657:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+/*
+** This module provides functionality to interact with the locally installed CLI.
+*/
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8532,81 +8541,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setLicenseKey = exports.install = void 0;
-const core = __nccwpck_require__(6024);
-const cache = __nccwpck_require__(3594);
+exports.setLicenseKey = exports.getInstalledVersion = void 0;
 const io = __nccwpck_require__(6202);
 const exec = __nccwpck_require__(2423);
 const fs_1 = __nccwpck_require__(7147);
 const os_1 = __nccwpck_require__(2037);
-const axios_1 = __nccwpck_require__(992);
-const utils_1 = __nccwpck_require__(4260);
-const productId = "cli"; // Download service product identifier
-const toolName = "orgflow"; // GHA tool cache key
-function install(versionSpec, includePrerelease, skipInstall) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log("Checking installed version...");
-        let installedVersion = yield getInstalledVersion();
-        if (installedVersion) {
-            console.log(`Version '${installedVersion}' is installed.`);
-        }
-        else {
-            console.log("No installed version was detected.");
-        }
-        if (skipInstall) {
-            console.log("skipInstall=true; skipping install.");
-            return installedVersion;
-        }
-        const latestZipFileInfo = yield getLatestZipFileInfo(versionSpec, includePrerelease);
-        if (installedVersion === latestZipFileInfo.versionString) {
-            console.log(`Version '${installedVersion}' is already installed; skipping installation.`);
-            return installedVersion;
-        }
-        const allVersions = cache.findAllVersions(toolName);
-        console.log(`Versions in tool cache: ${allVersions}`);
-        let cliDirPath = cache.find(toolName, latestZipFileInfo.versionString);
-        if (!cliDirPath) {
-            console.log(`Version ${latestZipFileInfo.versionString} not available in tool cache; downloading from service...`);
-            const tempZipFilePath = yield cache.downloadTool(latestZipFileInfo.downloadUrl);
-            const tempCliDirPath = yield cache.extractZip(tempZipFilePath);
-            console.log(`Version ${latestZipFileInfo.versionString} was successfully downloaded and extracted to '${tempCliDirPath}'.`);
-            cliDirPath = yield cache.cacheDir(tempCliDirPath, toolName, latestZipFileInfo.versionString);
-            console.log(`Version ${latestZipFileInfo.versionString} was added to tool cache.`);
-        }
-        else {
-            console.log(`Using version in tool cache at '${cliDirPath}'.`);
-        }
-        core.addPath(cliDirPath);
-        const cliPath = yield io.which("orgflow");
-        console.log(`CLI on PATH: '${cliPath}'.`);
-        // Re-check installed version after installation:
-        installedVersion = yield getInstalledVersion();
-        if (installedVersion !== latestZipFileInfo.versionString) {
-            throw new Error(`Detected installed version '${installedVersion}' but expected '${latestZipFileInfo.versionString}'; CLI was likely not installed correctly.`);
-        }
-        return installedVersion;
-    });
-}
-exports.install = install;
-function setLicenseKey(licenseKey) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log("Validating license key...");
-        let stderr = "";
-        // Use the stack:list command to set license key (we currently don't have a better way).
-        const exitCode = yield exec.exec("orgflow", ["stack:list", `--licenseKey=${licenseKey}`], {
-            ignoreReturnCode: true,
-            outStream: (0, fs_1.createWriteStream)(os_1.devNull),
-            listeners: {
-                stderr: data => stderr += data.toString().trim(),
-            }
-        });
-        if (exitCode !== 0) {
-            throw new Error(`'orgflow --licenseKey' failed with exit code ${exitCode}. STDERR: ${stderr}`);
-        }
-        console.log("License key was successfully validated and saved.");
-    });
-}
-exports.setLicenseKey = setLicenseKey;
 function getInstalledVersion() {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Running 'orgflow --version' to get current installed version...");
@@ -8641,6 +8580,52 @@ function getInstalledVersion() {
         return installedVersion;
     });
 }
+exports.getInstalledVersion = getInstalledVersion;
+function setLicenseKey(licenseKey) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("Validating license key...");
+        let stderr = "";
+        // Use the stack:list command to set license key (somewhat arbitrary, we currently don't have a better way).
+        const exitCode = yield exec.exec("orgflow", ["stack:list", `--licenseKey=${licenseKey}`], {
+            ignoreReturnCode: true,
+            outStream: (0, fs_1.createWriteStream)(os_1.devNull),
+            listeners: {
+                stderr: data => stderr += data.toString().trim(),
+            }
+        });
+        if (exitCode !== 0) {
+            throw new Error(`'orgflow --licenseKey' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+        }
+        console.log("License key was successfully validated and saved.");
+    });
+}
+exports.setLicenseKey = setLicenseKey;
+
+
+/***/ }),
+
+/***/ 4674:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+/*
+** This module provides functionality to interact with the download service.
+*/
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getLatestZipFileInfo = void 0;
+const axios_1 = __nccwpck_require__(992);
+const utils_1 = __nccwpck_require__(4260);
+const productId = "cli"; // Download service product identifier
 function getLatestZipFileInfo(versionSpec, includePrerelease) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Checking service for latest available version...");
@@ -8664,6 +8649,81 @@ function getLatestZipFileInfo(versionSpec, includePrerelease) {
         return latestZipFileInfo;
     });
 }
+exports.getLatestZipFileInfo = getLatestZipFileInfo;
+
+
+/***/ }),
+
+/***/ 4067:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+/*
+** This module provides logic to download and install the CLI on the local machine.
+*/
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.install = void 0;
+const core = __nccwpck_require__(6024);
+const cache = __nccwpck_require__(3594);
+const io = __nccwpck_require__(6202);
+const cli_1 = __nccwpck_require__(4657);
+const download_1 = __nccwpck_require__(4674);
+const toolName = "orgflow"; // GHA tool cache key
+function install(versionSpec, includePrerelease, skipInstall) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("Checking installed version...");
+        let installedVersion = yield (0, cli_1.getInstalledVersion)();
+        if (installedVersion) {
+            console.log(`Version '${installedVersion}' is installed.`);
+        }
+        else {
+            console.log("No installed version was detected.");
+        }
+        if (skipInstall) {
+            console.log("skipInstall=true; skipping install.");
+            return installedVersion;
+        }
+        const latestZipFileInfo = yield (0, download_1.getLatestZipFileInfo)(versionSpec, includePrerelease);
+        if (installedVersion === latestZipFileInfo.versionString) {
+            console.log(`Version '${installedVersion}' is already installed; skipping installation.`);
+            return installedVersion;
+        }
+        const allVersions = cache.findAllVersions(toolName);
+        console.log(`Versions in tool cache: ${allVersions}`);
+        let cliDirPath = cache.find(toolName, latestZipFileInfo.versionString);
+        if (!cliDirPath) {
+            console.log(`Version ${latestZipFileInfo.versionString} not available in tool cache; downloading from service...`);
+            const tempZipFilePath = yield cache.downloadTool(latestZipFileInfo.downloadUrl);
+            const tempCliDirPath = yield cache.extractZip(tempZipFilePath);
+            console.log(`Version ${latestZipFileInfo.versionString} was successfully downloaded and extracted to '${tempCliDirPath}'.`);
+            cliDirPath = yield cache.cacheDir(tempCliDirPath, toolName, latestZipFileInfo.versionString);
+            console.log(`Version ${latestZipFileInfo.versionString} was added to tool cache.`);
+        }
+        else {
+            console.log(`Using version in tool cache at '${cliDirPath}'.`);
+        }
+        core.addPath(cliDirPath);
+        const cliPath = yield io.which("orgflow");
+        console.log(`CLI on PATH: '${cliPath}'.`);
+        // Re-check installed version after installation:
+        installedVersion = yield (0, cli_1.getInstalledVersion)();
+        if (installedVersion !== latestZipFileInfo.versionString) {
+            throw new Error(`Detected installed version '${installedVersion}' but expected '${latestZipFileInfo.versionString}'; CLI was likely not installed correctly.`);
+        }
+        return installedVersion;
+    });
+}
+exports.install = install;
 
 
 /***/ }),
@@ -8673,6 +8733,9 @@ function getLatestZipFileInfo(versionSpec, includePrerelease) {
 
 "use strict";
 
+/*
+** This module provides low-level reusable utility functions.
+*/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getRuntimeId = void 0;
 const os_1 = __nccwpck_require__(2037);
