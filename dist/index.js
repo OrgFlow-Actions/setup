@@ -8510,15 +8510,26 @@ function run() {
             if (!!salesforceUsername !== !!salesforcePassword) {
                 throw new Error("Either both or neither of inputs 'salesforce-username' and 'salesforce-password' must have a value.");
             }
+            const gitUsername = core.getInput("git-username");
+            const gitPassword = core.getInput("git-password");
             const gitCommitterName = core.getInput("git-committer-name");
             const gitCommitterEmail = core.getInput("git-committer-email");
+            if (gitUsername && !gitPassword) {
+                throw new Error("Input value 'git-username' must only be used when also using 'git-password'.");
+            }
             const stackName = core.getInput("stack-name");
-            if (!stackName && !!salesforcePassword) {
+            if (!stackName && salesforcePassword) {
                 throw new Error("Input value 'stack-name' is required when saving Salesforce credentials.");
             }
+            if (!stackName && gitPassword) {
+                throw new Error("Input value 'stack-name' is required when saving Git credentials.");
+            }
+            // Download and install:
             const installedVersion = yield (0, install_1.install)(versionSpec, includePrerelease, skipInstall);
             core.setOutput("version", installedVersion);
+            // Validate and save license key:
             yield (0, cli_1.setLicenseKey)(licenseKey);
+            // Save Salesforce credentials:
             if (salesforcePassword) {
                 const encryptionKey = yield (0, cli_1.createEncryptionKey)(stackName);
                 yield (0, cli_1.saveEncryptionKey)(encryptionKey, stackName);
@@ -8526,8 +8537,9 @@ function run() {
                 core.setSecret(encryptionKey); // Mask encryption key in logs
                 core.setOutput("encryption-key", encryptionKey);
             }
-            if (stackName) {
-                yield (0, cli_1.setDefaultStack)(stackName);
+            // Configure Git authentication and committer signature:
+            if (gitPassword) {
+                yield (0, git_1.configureGitAuthentication)(gitUsername, gitPassword, stackName);
             }
             if (gitCommitterName) {
                 yield (0, git_1.setCommitterName)(gitCommitterName);
@@ -8535,8 +8547,10 @@ function run() {
             if (gitCommitterEmail) {
                 yield (0, git_1.setCommitterEmail)(gitCommitterEmail);
             }
-            // TODO:
-            // Set up Git configuration if instructed
+            // Set default stack:
+            if (stackName) {
+                yield (0, cli_1.setDefaultStack)(stackName);
+            }
         }
         catch (error) {
             core.setFailed(error.message);
@@ -8567,7 +8581,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setDefaultStack = exports.saveSalesforceCredentials = exports.saveEncryptionKey = exports.createEncryptionKey = exports.setLicenseKey = exports.getInstalledVersion = void 0;
+exports.setDefaultStack = exports.getCredentialHelperCommandLine = exports.saveGitCredentials = exports.saveSalesforceCredentials = exports.saveEncryptionKey = exports.createEncryptionKey = exports.setLicenseKey = exports.getInstalledVersion = void 0;
 const io = __nccwpck_require__(6202);
 const exec = __nccwpck_require__(2423);
 // import { createWriteStream } from "fs";
@@ -8622,11 +8636,23 @@ exports.saveEncryptionKey = saveEncryptionKey;
 function saveSalesforceCredentials(username, password, stackName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Saving Salesforce credentials locally for stack '${stackName}'...`);
-        yield execOrgFlow("auth:salesforce:save", `--username="${username}"`, `--password="${password}"`, `--stack="${stackName}"`);
+        yield execOrgFlow("auth:salesforce:save", `--username="${username}"`, `--password="${password}"`, `--stack="${stackName}"`, "--location=local");
         console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
     });
 }
 exports.saveSalesforceCredentials = saveSalesforceCredentials;
+function saveGitCredentials(username, password, encryptionKey, stackName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Saving Git credentials locally for stack '${stackName}'...`);
+        yield execOrgFlow("auth:git:save", `--username="${username}"`, `--password="${password}"`, `--encryptionKey=${encryptionKey}`, `--stack="${stackName}"`, "--location=local");
+        console.log(`Git credentials were saved successfully for stack '${stackName}'.`);
+    });
+}
+exports.saveGitCredentials = saveGitCredentials;
+function getCredentialHelperCommandLine(encryptionKey, stackName) {
+    return `orgflow auth:git:credentialhelper --encryptionKey=${encryptionKey} --stack="${stackName}"`;
+}
+exports.getCredentialHelperCommandLine = getCredentialHelperCommandLine;
 function setDefaultStack(stackName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Setting default stack '${stackName}'...`);
@@ -8728,8 +8754,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setCommitterEmail = exports.setCommitterName = void 0;
+exports.setCommitterEmail = exports.setCommitterName = exports.configureGitAuthentication = void 0;
 const exec = __nccwpck_require__(2423);
+const cli_1 = __nccwpck_require__(4657);
+function configureGitAuthentication(username, password, stackName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Configuring Git authentication for stack '${stackName}'...`);
+        // Save Git credentials locally encrypted with a unique encryption key:
+        const encryptionKey = yield (0, cli_1.createEncryptionKey)(stackName);
+        yield (0, cli_1.saveGitCredentials)(username, password, encryptionKey, stackName);
+        // Add OrgFlow as a Git credential helper:
+        const orgFlowCredentialHelper = (0, cli_1.getCredentialHelperCommandLine)(encryptionKey, stackName);
+        yield addCredentialHelper(`!${orgFlowCredentialHelper}`); // prefix with '!' to indicate execution as a shell command, see https://git-scm.com/docs/git-config#Documentation/git-config.txt-alias
+        // Add a 24-hour credential helper cache to reduce the amount of calls into OrgFlow:
+        yield addCredentialHelper("cache --timeout=86400");
+        console.log(`Git authentication was configured successfully for stack '${stackName}'.`);
+    });
+}
+exports.configureGitAuthentication = configureGitAuthentication;
 function setCommitterName(committerName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Setting Git committer name globally as '${committerName}'...`);
@@ -8746,6 +8788,11 @@ function setCommitterEmail(committerEmail) {
     });
 }
 exports.setCommitterEmail = setCommitterEmail;
+function addCredentialHelper(credentialHelper) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield execGit("config", "--global", "--add", "credential-helper", `"${credentialHelper}"`);
+    });
+}
 function execGit(commandName, ...args) {
     return __awaiter(this, void 0, void 0, function* () {
         let stdout = "";
@@ -8755,7 +8802,6 @@ function execGit(commandName, ...args) {
             ...args
         ], {
             ignoreReturnCode: true,
-            //outStream: createWriteStream(devNull), // Output from command may reveal lots of info and should not end up in workflow logs
             listeners: {
                 stdout: data => stdout += data.toString().trim(),
                 stderr: data => stderr += data.toString().trim(),

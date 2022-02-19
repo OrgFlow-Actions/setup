@@ -5,7 +5,7 @@
 import * as core from "@actions/core";
 import { install } from "./lib/install";
 import { createEncryptionKey, saveEncryptionKey, saveSalesforceCredentials, setDefaultStack, setLicenseKey } from "./lib/cli";
-import { setCommitterEmail, setCommitterName } from "./lib/git";
+import { setCommitterEmail, setCommitterName, configureGitAuthentication } from "./lib/git";
 
 export async function run()
 {
@@ -38,20 +38,36 @@ export async function run()
 			throw new Error("Either both or neither of inputs 'salesforce-username' and 'salesforce-password' must have a value.");
 		}
 
+		const gitUsername = core.getInput("git-username");
+		const gitPassword = core.getInput("git-password");
 		const gitCommitterName = core.getInput("git-committer-name");
 		const gitCommitterEmail = core.getInput("git-committer-email");
+		if (gitUsername && !gitPassword)
+		{
+			throw new Error("Input value 'git-username' must only be used when also using 'git-password'.");
+		}
 
 		const stackName = core.getInput("stack-name")
-		if (!stackName && !!salesforcePassword)
+		if (!stackName && salesforcePassword)
 		{
 			throw new Error("Input value 'stack-name' is required when saving Salesforce credentials.");
 		}
+		if (!stackName && gitPassword)
+		{
+			throw new Error("Input value 'stack-name' is required when saving Git credentials.");
+		}
+
+		// Download and install:
 
 		const installedVersion = await install(versionSpec, includePrerelease, skipInstall);
 
 		core.setOutput("version", installedVersion);
 
+		// Validate and save license key:
+
 		await setLicenseKey(licenseKey);
+
+		// Save Salesforce credentials:
 
 		if (salesforcePassword)
 		{
@@ -63,22 +79,29 @@ export async function run()
 			core.setOutput("encryption-key", encryptionKey);
 		}
 
-		if (stackName)
+		// Configure Git authentication and committer signature:
+
+		if (gitPassword)
 		{
-			await setDefaultStack(stackName);
+			await configureGitAuthentication(gitUsername, gitPassword, stackName);
 		}
 
 		if (gitCommitterName)
 		{
 			await setCommitterName(gitCommitterName);
 		}
+
 		if (gitCommitterEmail)
 		{
 			await setCommitterEmail(gitCommitterEmail);
 		}
 
-		// TODO:
-		// Set up Git configuration if instructed
+		// Set default stack:
+
+		if (stackName)
+		{
+			await setDefaultStack(stackName);
+		}
 	}
 	catch (error)
 	{

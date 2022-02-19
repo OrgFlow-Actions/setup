@@ -30,6 +30,8 @@ jobs:
           license-key: ${{ secrets.ORGFLOW_LICENSEKEY }}
           salesforce-username: ${{ secrets.SALESFORCE_USERNAME }}
           salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
+          git-username: DimitriusWoodward # Bogus
+          git-password: tMfxyRCtnulUxXZl # Bogus
           stack-name: TestStack_${{github.run_id}}_${{github.run_number}}
         env:
           ORGFLOW_ACCEPTEULA: "true"

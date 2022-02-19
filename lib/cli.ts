@@ -65,8 +65,26 @@ export async function saveSalesforceCredentials(username: string, password: stri
 	await execOrgFlow("auth:salesforce:save",
 		`--username="${username}"`,
 		`--password="${password}"`,
-		`--stack="${stackName}"`);
+		`--stack="${stackName}"`,
+		"--location=local");
 	console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
+}
+
+export async function saveGitCredentials(username: string, password: string, encryptionKey: string, stackName: string)
+{
+	console.log(`Saving Git credentials locally for stack '${stackName}'...`);
+	await execOrgFlow("auth:git:save",
+		`--username="${username}"`,
+		`--password="${password}"`,
+		`--encryptionKey=${encryptionKey}`,
+		`--stack="${stackName}"`,
+		"--location=local");
+	console.log(`Git credentials were saved successfully for stack '${stackName}'.`);
+}
+
+export function getCredentialHelperCommandLine(encryptionKey: string, stackName: string)
+{
+	return `orgflow auth:git:credentialhelper --encryptionKey=${encryptionKey} --stack="${stackName}"`;
 }
 
 export async function setDefaultStack(stackName: string)

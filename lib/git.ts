@@ -3,6 +3,25 @@
 */
 
 import * as exec from "@actions/exec";
+import { createEncryptionKey, getCredentialHelperCommandLine, saveGitCredentials } from "./cli";
+
+export async function configureGitAuthentication(username: string, password: string, stackName: string)
+{
+	console.log(`Configuring Git authentication for stack '${stackName}'...`);
+
+	// Save Git credentials locally encrypted with a unique encryption key:
+	const encryptionKey = await createEncryptionKey(stackName);
+	await saveGitCredentials(username, password, encryptionKey, stackName);
+
+	// Add OrgFlow as a Git credential helper:
+	const orgFlowCredentialHelper = getCredentialHelperCommandLine(encryptionKey, stackName);
+	await addCredentialHelper(`!${orgFlowCredentialHelper}`); // prefix with '!' to indicate execution as a shell command, see https://git-scm.com/docs/git-config#Documentation/git-config.txt-alias
+
+	// Add a 24-hour credential helper cache to reduce the amount of calls into OrgFlow:
+	await addCredentialHelper("cache --timeout=86400");
+
+	console.log(`Git authentication was configured successfully for stack '${stackName}'.`);
+}
 
 export async function setCommitterName(committerName: string)
 {
@@ -18,6 +37,11 @@ export async function setCommitterEmail(committerEmail: string)
 	console.log("Git committer email was set successfully.");
 }
 
+async function addCredentialHelper(credentialHelper: string)
+{
+	await execGit("config", "--global", "--add", "credential-helper", `"${credentialHelper}"`);
+}
+
 async function execGit(commandName: string, ...args: string[])
 {
 	let stdout: string = "";
@@ -30,7 +54,6 @@ async function execGit(commandName: string, ...args: string[])
 		],
 		{
 			ignoreReturnCode: true,
-			//outStream: createWriteStream(devNull), // Output from command may reveal lots of info and should not end up in workflow logs
 			listeners: {
 				stdout: data => stdout += data.toString().trim(),
 				stderr: data => stderr += data.toString().trim(),
