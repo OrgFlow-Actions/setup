@@ -9,7 +9,7 @@ jobs:
     steps:
       - run: |
           mkdir /tmp/TestStack1
-          git init -b main /tmp/TestStack1
+          git init --bare -b main /tmp/TestStack1
           orgflow stack:create --name=TestStack1 --gitRepoUrl=/tmp/TestStack1 --username=${{ secrets.SALESFORCE_USERNAME }} --password=${{ secrets.SALESFORCE_PASSWORD }} --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
 
   test_setup:
@@ -41,4 +41,4 @@ jobs:
     if: ${{ always() }}
     steps:
       - run: |
-          orgflow stack:delete --name=TestStack1 --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
+          orgflow stack:delete --name=TestStack1 --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula --noConfirm
