@@ -8523,6 +8523,9 @@ function run() {
                 core.setSecret(encryptionKey); // Mask encryption key in logs
                 core.setOutput("encryption-key", encryptionKey);
             }
+            if (stackName) {
+                yield (0, cli_1.setDefaultStack)(stackName);
+            }
             // TODO:
             // Set up Git configuration if instructed
         }
@@ -8555,7 +8558,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.saveSalesforceCredentials = exports.saveEncryptionKey = exports.createEncryptionKey = exports.setLicenseKey = exports.getInstalledVersion = void 0;
+exports.setDefaultStack = exports.saveSalesforceCredentials = exports.saveEncryptionKey = exports.createEncryptionKey = exports.setLicenseKey = exports.getInstalledVersion = void 0;
 const io = __nccwpck_require__(6202);
 const exec = __nccwpck_require__(2423);
 const fs_1 = __nccwpck_require__(7147);
@@ -8682,6 +8685,26 @@ function saveSalesforceCredentials(username, password, stackName) {
     });
 }
 exports.saveSalesforceCredentials = saveSalesforceCredentials;
+function setDefaultStack(stackName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Setting default stack '${stackName}'...`);
+        let stderr = "";
+        const exitCode = yield exec.exec("orgflow", [
+            "stack:setdefault",
+            `--name=${stackName}`,
+        ], {
+            ignoreReturnCode: true,
+            listeners: {
+                stderr: data => stderr += data.toString().trim(),
+            }
+        });
+        if (exitCode !== 0) {
+            throw new Error(`'orgflow stack:setdefault' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+        }
+        console.log(`Stack '${stackName}' was sucessfully set as default.`);
+    });
+}
+exports.setDefaultStack = setDefaultStack;
 
 
 /***/ }),

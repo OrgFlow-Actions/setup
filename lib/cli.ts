@@ -164,3 +164,29 @@ export async function saveSalesforceCredentials(username: string, password: stri
 
 	console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
 }
+
+export async function setDefaultStack(stackName: string)
+{
+	console.log(`Setting default stack '${stackName}'...`);
+
+	let stderr: string = "";
+
+	const exitCode = await exec.exec("orgflow",
+		[
+			"stack:setdefault",
+			`--name=${stackName}`,
+		],
+		{
+			ignoreReturnCode: true,
+			listeners: {
+				stderr: data => stderr += data.toString().trim(),
+			}
+		});
+
+	if (exitCode !== 0)
+	{
+		throw new Error(`'orgflow stack:setdefault' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+	}
+
+	console.log(`Stack '${stackName}' was sucessfully set as default.`);
+}

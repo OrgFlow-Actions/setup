@@ -4,7 +4,7 @@
 
 import * as core from "@actions/core";
 import { install } from "./lib/install";
-import { createEncryptionKey, saveEncryptionKey, saveSalesforceCredentials, setLicenseKey } from "./lib/cli";
+import { createEncryptionKey, saveEncryptionKey, saveSalesforceCredentials, setDefaultStack, setLicenseKey } from "./lib/cli";
 
 export async function run()
 {
@@ -57,6 +57,11 @@ export async function run()
 
 			core.setSecret(encryptionKey); // Mask encryption key in logs
 			core.setOutput("encryption-key", encryptionKey);
+		}
+
+		if (stackName)
+		{
+			await setDefaultStack(stackName);
 		}
 
 		// TODO:
