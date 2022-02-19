@@ -1,1 +1,4 @@
 node_modules
+# Added when compiling using tsc for local debugging:
+dist/lib
+**/*.map

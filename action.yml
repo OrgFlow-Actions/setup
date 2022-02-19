@@ -1,17 +1,52 @@
 name: "OrgFlow: Salesforce DevOps for GitHub"
 author: OrgFlow GmbH
 description: Use OrgFlow CLI from GitHub Actions to build your Salesforce DevOps pipeline and manage your deployments from GitHub
+branding:
+  icon: cloud
+  color: red
 inputs:
   version:
     description: Version of OrgFlow to install. Can be specified as major '1', minor '1.1' or patch '1.1.1'; latest matching version will be installed. Omit to install latest available version.
     required: false
-  includePrerelease:
+  include-prerelease:
     description: Include prerelease versions when determining latest available version.
     required: false
     default: "false"
+  skip-install:
+    description: Don't download and install OrgFlow (i.e. assume OrgFlow is already installed).
+    required: false
+    default: "false"
+  license-key:
+    description: Your OrgFlow license key (you can get one at https://www.orgflow.io if you do not already have one).
+    required: true
+  salesforce-username:
+    description: Save username for connecting to production Salesforce org (stored in encrypted form).
+    required: false
+  salesforce-password:
+    description: Save password for connecting to production Salesforce org (stored in encrypted form).
+    required: false
+  git-username:
+    description: Save username for connecting to remote Git repository (not needed if connecting to a GitHub repository).
+    required: false
+  git-password:
+    description: Save access token or password for connecting to remote Git repository (use 'secrets.GITHUB_TOKEN' if connecting to the current repository).
+    required: false
+  git-committer-name:
+    description: Set name to use in committer signature when committing changes to Git repository.
+    required: false
+    default: OrgFlow Default Committer
+  git-committer-email:
+    description: Set email address to use in committer signature when committing changes to Git repository.
+    required: false
+    default: defaultcommitter@orgflow.io
+  stack-name:
+    description: Name of OrgFlow stack to save credentials for (required when saving Salesforce or Git credentials).
+    required: false
 outputs:
   version:
-    description: Exact version of OrgFlow that was installed and configured.
+    description: Exact version of OrgFlow that was installed and/or configured.
+  encryption-key:
+    description: Encryption key that was created and used to encrypt Salesforce credentials (if set).
 runs:
   using: node16
   main: dist/index.js
