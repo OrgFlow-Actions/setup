@@ -79,16 +79,46 @@ export async function setLicenseKey(licenseKey: string)
 export async function createEncryptionKey(stackName: string)
 {
 	console.log("Creating new encryption key...");
+	const encryptionKey = await execOrgFlow("auth:key:create", "--output=flat");
+	console.log("New encryption key was successfully created.");
+	return encryptionKey;
+}
 
-	let encryptionKey: string = null;
+export async function saveEncryptionKey(encryptionKey: string, stackName: string)
+{
+	console.log(`Saving encryption key locally for stack '${stackName}'...`);
+	await execOrgFlow("auth:key:save",
+		`--encryptionKey=${encryptionKey}`,
+		`--stack=${stackName}`);
+	console.log(`Encryption key was saved successfully for stack '${stackName}'.`);
+}
 
+export async function saveSalesforceCredentials(username: string, password: string, stackName: string)
+{
+	console.log(`Saving Salesforce credentials locally for stack '${stackName}'...`);
+	await execOrgFlow("auth:salesforce:save",
+		`--username=${username}`,
+		`--password=${password}`,
+		`--stack=${stackName}`);
+	console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
+}
+
+export async function setDefaultStack(stackName: string)
+{
+	console.log(`Setting default stack '${stackName}'...`);
+	await execOrgFlow("stack:setdefault", `--name=${stackName}`);
+	console.log(`Stack '${stackName}' was sucessfully set as default.`);
+}
+
+async function execOrgFlow(commandName: string, ...args: string[])
+{
 	let stdout: string = "";
 	let stderr: string = "";
 
 	const exitCode = await exec.exec("orgflow",
 		[
-			"auth:key:create",
-			"--output=flat"
+			commandName,
+			...args
 		],
 		{
 			ignoreReturnCode: true,
@@ -100,93 +130,8 @@ export async function createEncryptionKey(stackName: string)
 
 	if (exitCode !== 0)
 	{
-		throw new Error(`'orgflow auth:key:create' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+		throw new Error(`'orgflow ${commandName}' failed with exit code ${exitCode}. STDERR: ${stderr}`);
 	}
 
-	encryptionKey = stdout;
-
-	console.log("New encryption key was successfully created.");
-
-	return encryptionKey;
-}
-
-export async function saveEncryptionKey(encryptionKey: string, stackName: string)
-{
-	console.log(`Saving encryption key locally for stack '${stackName}'...`);
-
-	let stderr: string = "";
-
-	const exitCode = await exec.exec("orgflow",
-		[
-			"auth:key:save",
-			`--encryptionKey=${encryptionKey}`,
-			`--stack=${stackName}`,
-		],
-		{
-			ignoreReturnCode: true,
-			listeners: {
-				stderr: data => stderr += data.toString().trim(),
-			}
-		});
-
-	if (exitCode !== 0)
-	{
-		throw new Error(`'orgflow auth:key:save' failed with exit code ${exitCode}. STDERR: ${stderr}`);
-	}
-
-	console.log(`Encryption key was saved successfully for stack '${stackName}'.`);
-}
-
-export async function saveSalesforceCredentials(username: string, password: string, stackName: string)
-{
-	console.log(`Saving Salesforce credentials locally for stack '${stackName}'...`);
-
-	let stderr: string = "";
-
-	const exitCode = await exec.exec("orgflow",
-		[
-			"auth:salesforce:save",
-			`--username=${username}`,
-			`--password=${password}`,
-			`--stack=${stackName}`,
-		],
-		{
-			ignoreReturnCode: true,
-			listeners: {
-				stderr: data => stderr += data.toString().trim(),
-			}
-		});
-
-	if (exitCode !== 0)
-	{
-		throw new Error(`'orgflow auth:salesforce:save' failed with exit code ${exitCode}. STDERR: ${stderr}`);
-	}
-
-	console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
-}
-
-export async function setDefaultStack(stackName: string)
-{
-	console.log(`Setting default stack '${stackName}'...`);
-
-	let stderr: string = "";
-
-	const exitCode = await exec.exec("orgflow",
-		[
-			"stack:setdefault",
-			`--name=${stackName}`,
-		],
-		{
-			ignoreReturnCode: true,
-			listeners: {
-				stderr: data => stderr += data.toString().trim(),
-			}
-		});
-
-	if (exitCode !== 0)
-	{
-		throw new Error(`'orgflow stack:setdefault' failed with exit code ${exitCode}. STDERR: ${stderr}`);
-	}
-
-	console.log(`Stack '${stackName}' was sucessfully set as default.`);
+	return stdout;
 }
