@@ -3,9 +3,13 @@
 */
 
 import * as core from "@actions/core";
+import * as artifact from "@actions/artifact";
 import { install } from "./lib/install";
 import { createEncryptionKey, saveEncryptionKey, saveSalesforceCredentials, setDefaultStack, setLicenseKey } from "./lib/cli";
 import { setCommitterEmail, setCommitterName, configureGitAuthentication } from "./lib/git";
+
+const logDirPath = "/tmp/OrgFlow";
+const logFilePath = `${logDirPath}/setup.log`;
 
 export async function run()
 {
@@ -56,6 +60,11 @@ export async function run()
 		{
 			throw new Error("Input value 'stack-name' is required when saving Git credentials.");
 		}
+
+		// Configure logging:
+
+		core.exportVariable("ORGFLOW_LOGFILEPATH", logFilePath);
+		core.exportVariable("ORGFLOW_LOGLEVEL", "Verbose");
 
 		// Download and install:
 
@@ -115,6 +124,10 @@ export async function run()
 	catch (error)
 	{
 		core.setFailed(error.message);
+
+		// Upload CLI log file as artifact on failure to aid troubleshooting:
+		const client = artifact.create();
+		await client.uploadArtifact("OrgFlowLog", [logFilePath], logDirPath, { continueOnError: true });
 	}
 }
 
