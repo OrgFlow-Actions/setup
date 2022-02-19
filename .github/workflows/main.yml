@@ -8,9 +8,11 @@ jobs:
     name: Create stack
     steps:
       - run: |
-          mkdir /tmp/TestStack1
-          git init --bare -b main /tmp/TestStack1
-          orgflow stack:create --name=TestStack1 --gitRepoUrl=/tmp/TestStack1 --username=${{ secrets.SALESFORCE_USERNAME }} --password=${{ secrets.SALESFORCE_PASSWORD }} --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
+          mkdir /tmp/$STACKNAME
+          git init --bare -b main /tmp/$STACKNAME
+          orgflow stack:create --name=$STACKNAME --gitRepoUrl=/tmp/$STACKNAME --username=${{ secrets.SALESFORCE_USERNAME }} --password=${{ secrets.SALESFORCE_PASSWORD }} --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
+        env:
+          STACKNAME: TestStack_${{github.run_id}}_${{github.run_number}}
 
   test_setup:
     runs-on: ubuntu-latest
@@ -27,11 +29,13 @@ jobs:
           license-key: ${{ secrets.ORGFLOW_LICENSEKEY }}
           salesforce-username: ${{ secrets.SALESFORCE_USERNAME }}
           salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
-          stack-name: TestStack1 # TODO: Make this a variable
+          stack-name: TestStack_${{github.run_id}}_${{github.run_number}}
         env:
           ORGFLOW_ACCEPTEULA: "true"
-      - name: Print installed version
-        run: echo "Version ${{ steps.setup.outputs.version }} was installed."
+      - name: Print outputs
+        run: |
+          echo "Version: ${{ steps.setup.outputs.version }}"
+          echo "Encryption key: ${{ steps.setup.outputs.encryption-key }}"
 
   delete_stack:
     runs-on: ubuntu-latest
@@ -41,4 +45,6 @@ jobs:
     if: ${{ always() }}
     steps:
       - run: |
-          orgflow stack:delete --name=TestStack1 --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula --noConfirm
+          orgflow stack:delete --name=$STACKNAME --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula --noConfirm
+        env:
+          STACKNAME: TestStack_${{github.run_id}}_${{github.run_number}}
