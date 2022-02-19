@@ -5,6 +5,7 @@
 import * as core from "@actions/core";
 import * as io from "@actions/io";
 import * as exec from "@actions/exec";
+// Saved for possible future use:
 // import { createWriteStream } from "fs";
 // import { devNull } from "os";
 
@@ -120,8 +121,9 @@ async function execOrgFlow(commandName: string, ...args: string[])
 		],
 		{
 			ignoreReturnCode: true,
+			// Saved for possible future use:
 			//silent: true,
-			//outStream: createWriteStream(devNull), // Output from command may reveal sensitive info and should not end up in logs
+			//outStream: createWriteStream(devNull),
 			listeners: {
 				stdout: data => stdout += data.toString().trim(),
 				stderr: data => stderr += data.toString().trim(),

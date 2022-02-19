@@ -8591,6 +8591,7 @@ exports.setDefaultStack = exports.getCredentialHelperCommandLine = exports.saveG
 const core = __nccwpck_require__(6024);
 const io = __nccwpck_require__(6202);
 const exec = __nccwpck_require__(2423);
+// Saved for possible future use:
 // import { createWriteStream } from "fs";
 // import { devNull } from "os";
 function getInstalledVersion() {
@@ -8677,8 +8678,9 @@ function execOrgFlow(commandName, ...args) {
             ...args
         ], {
             ignoreReturnCode: true,
+            // Saved for possible future use:
             //silent: true,
-            //outStream: createWriteStream(devNull), // Output from command may reveal sensitive info and should not end up in logs
+            //outStream: createWriteStream(devNull),
             listeners: {
                 stdout: data => stdout += data.toString().trim(),
                 stderr: data => stderr += data.toString().trim(),
