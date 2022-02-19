@@ -5,6 +5,7 @@
 import * as core from "@actions/core";
 import { install } from "./lib/install";
 import { createEncryptionKey, saveEncryptionKey, saveSalesforceCredentials, setDefaultStack, setLicenseKey } from "./lib/cli";
+import { setCommitterEmail, setCommitterName } from "./lib/git";
 
 export async function run()
 {
@@ -37,6 +38,9 @@ export async function run()
 			throw new Error("Either both or neither of inputs 'salesforce-username' and 'salesforce-password' must have a value.");
 		}
 
+		const gitCommitterName = core.getInput("git-committer-name");
+		const gitCommitterEmail = core.getInput("git-committer-email");
+
 		const stackName = core.getInput("stack-name")
 		if (!stackName && !!salesforcePassword)
 		{
@@ -62,6 +66,15 @@ export async function run()
 		if (stackName)
 		{
 			await setDefaultStack(stackName);
+		}
+
+		if (gitCommitterName)
+		{
+			await setCommitterName(gitCommitterName);
+		}
+		if (gitCommitterEmail)
+		{
+			await setCommitterEmail(gitCommitterEmail);
 		}
 
 		// TODO:

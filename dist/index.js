@@ -8489,6 +8489,7 @@ exports.run = void 0;
 const core = __nccwpck_require__(6024);
 const install_1 = __nccwpck_require__(4067);
 const cli_1 = __nccwpck_require__(4657);
+const git_1 = __nccwpck_require__(7321);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -8509,6 +8510,8 @@ function run() {
             if (!!salesforceUsername !== !!salesforcePassword) {
                 throw new Error("Either both or neither of inputs 'salesforce-username' and 'salesforce-password' must have a value.");
             }
+            const gitCommitterName = core.getInput("git-committer-name");
+            const gitCommitterEmail = core.getInput("git-committer-email");
             const stackName = core.getInput("stack-name");
             if (!stackName && !!salesforcePassword) {
                 throw new Error("Input value 'stack-name' is required when saving Salesforce credentials.");
@@ -8525,6 +8528,12 @@ function run() {
             }
             if (stackName) {
                 yield (0, cli_1.setDefaultStack)(stackName);
+            }
+            if (gitCommitterName) {
+                yield (0, git_1.setCommitterName)(gitCommitterName);
+            }
+            if (gitCommitterEmail) {
+                yield (0, git_1.setCommitterEmail)(gitCommitterEmail);
             }
             // TODO:
             // Set up Git configuration if instructed
@@ -8697,6 +8706,67 @@ function getLatestZipFileInfo(versionSpec, includePrerelease) {
     });
 }
 exports.getLatestZipFileInfo = getLatestZipFileInfo;
+
+
+/***/ }),
+
+/***/ 7321:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+/*
+** This module provides functionality to interact with Git.
+*/
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.setCommitterEmail = exports.setCommitterName = void 0;
+const exec = __nccwpck_require__(2423);
+function setCommitterName(committerName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Setting Git committer name globally as '${committerName}'...`);
+        yield execGit("config", "--global", "user.name", committerName);
+        console.log("Git committer name was set successfully.");
+    });
+}
+exports.setCommitterName = setCommitterName;
+function setCommitterEmail(committerEmail) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Setting Git committer email globally as '${committerEmail}'...`);
+        yield execGit("config", "--global", "user.email", committerEmail);
+        console.log("Git committer email was set successfully.");
+    });
+}
+exports.setCommitterEmail = setCommitterEmail;
+function execGit(commandName, ...args) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let stdout = "";
+        let stderr = "";
+        const exitCode = yield exec.exec("git", [
+            commandName,
+            ...args
+        ], {
+            ignoreReturnCode: true,
+            //outStream: createWriteStream(devNull), // Output from command may reveal lots of info and should not end up in workflow logs
+            listeners: {
+                stdout: data => stdout += data.toString().trim(),
+                stderr: data => stderr += data.toString().trim(),
+            }
+        });
+        if (exitCode !== 0) {
+            throw new Error(`'git ${commandName}' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+        }
+        return stdout;
+    });
+}
 
 
 /***/ }),
