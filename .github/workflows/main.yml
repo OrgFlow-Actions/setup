@@ -41,4 +41,4 @@ jobs:
     if: ${{ always() }}
     steps:
       - run: |
-          orgflow stack:create --name=TestStack1 --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
+          orgflow stack:delete --name=TestStack1 --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
