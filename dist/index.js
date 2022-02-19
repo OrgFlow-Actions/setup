@@ -8561,8 +8561,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setDefaultStack = exports.saveSalesforceCredentials = exports.saveEncryptionKey = exports.createEncryptionKey = exports.setLicenseKey = exports.getInstalledVersion = void 0;
 const io = __nccwpck_require__(6202);
 const exec = __nccwpck_require__(2423);
-const fs_1 = __nccwpck_require__(7147);
-const os_1 = __nccwpck_require__(2037);
+// import { createWriteStream } from "fs";
+// import { devNull } from "os";
 function getInstalledVersion() {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Running 'orgflow --version' to get current installed version...");
@@ -8572,26 +8572,12 @@ function getInstalledVersion() {
         }
         else {
             try {
-                let stdout = "";
-                let stderr = "";
-                const exitCode = yield exec.exec("orgflow", ["--version"], {
-                    ignoreReturnCode: true,
-                    listeners: {
-                        stdout: data => stdout += data.toString().trim(),
-                        stderr: data => stderr += data.toString().trim(),
-                    }
-                });
-                if (exitCode !== 0) {
-                    console.log(`'orgflow --version' failed with exit code ${exitCode}; CLI is likely not installed correctly. STDERR: ${stderr}`);
-                    return null;
-                }
-                console.log(`'orgflow --version' returned '${stdout}'.`);
-                installedVersion = stdout;
+                const installedVersion = yield execOrgFlow("--version");
+                console.log(`'orgflow --version' returned '${installedVersion}'.`);
             }
             catch (error) {
                 console.log("Error while running 'orgflow --version'; CLI is likely not installed correctly.");
                 console.log(error);
-                return null;
             }
         }
         return installedVersion;
@@ -8601,18 +8587,8 @@ exports.getInstalledVersion = getInstalledVersion;
 function setLicenseKey(licenseKey) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Validating license key...");
-        let stderr = "";
         // Use the stack:list command to set license key (somewhat arbitrary, we currently don't have a better way).
-        const exitCode = yield exec.exec("orgflow", ["stack:list", `--licenseKey=${licenseKey}`], {
-            ignoreReturnCode: true,
-            outStream: (0, fs_1.createWriteStream)(os_1.devNull),
-            listeners: {
-                stderr: data => stderr += data.toString().trim(),
-            }
-        });
-        if (exitCode !== 0) {
-            throw new Error(`'orgflow --licenseKey' failed with exit code ${exitCode}. STDERR: ${stderr}`);
-        }
+        yield execOrgFlow("stack:list", `--licenseKey=${licenseKey}`);
         console.log("License key was successfully validated and saved.");
     });
 }
@@ -8620,23 +8596,7 @@ exports.setLicenseKey = setLicenseKey;
 function createEncryptionKey(stackName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Creating new encryption key...");
-        let encryptionKey = null;
-        let stdout = "";
-        let stderr = "";
-        const exitCode = yield exec.exec("orgflow", [
-            "auth:key:create",
-            "--output=flat"
-        ], {
-            ignoreReturnCode: true,
-            listeners: {
-                stdout: data => stdout += data.toString().trim(),
-                stderr: data => stderr += data.toString().trim(),
-            }
-        });
-        if (exitCode !== 0) {
-            throw new Error(`'orgflow auth:key:create' failed with exit code ${exitCode}. STDERR: ${stderr}`);
-        }
-        encryptionKey = stdout;
+        const encryptionKey = yield execOrgFlow("auth:key:create", "--output=flat");
         console.log("New encryption key was successfully created.");
         return encryptionKey;
     });
@@ -8645,20 +8605,7 @@ exports.createEncryptionKey = createEncryptionKey;
 function saveEncryptionKey(encryptionKey, stackName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Saving encryption key locally for stack '${stackName}'...`);
-        let stderr = "";
-        const exitCode = yield exec.exec("orgflow", [
-            "auth:key:save",
-            `--encryptionKey=${encryptionKey}`,
-            `--stack=${stackName}`,
-        ], {
-            ignoreReturnCode: true,
-            listeners: {
-                stderr: data => stderr += data.toString().trim(),
-            }
-        });
-        if (exitCode !== 0) {
-            throw new Error(`'orgflow auth:key:save' failed with exit code ${exitCode}. STDERR: ${stderr}`);
-        }
+        yield execOrgFlow("auth:key:save", `--encryptionKey=${encryptionKey}`, `--stack=${stackName}`);
         console.log(`Encryption key was saved successfully for stack '${stackName}'.`);
     });
 }
@@ -8666,21 +8613,7 @@ exports.saveEncryptionKey = saveEncryptionKey;
 function saveSalesforceCredentials(username, password, stackName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Saving Salesforce credentials locally for stack '${stackName}'...`);
-        let stderr = "";
-        const exitCode = yield exec.exec("orgflow", [
-            "auth:salesforce:save",
-            `--username=${username}`,
-            `--password=${password}`,
-            `--stack=${stackName}`,
-        ], {
-            ignoreReturnCode: true,
-            listeners: {
-                stderr: data => stderr += data.toString().trim(),
-            }
-        });
-        if (exitCode !== 0) {
-            throw new Error(`'orgflow auth:salesforce:save' failed with exit code ${exitCode}. STDERR: ${stderr}`);
-        }
+        yield execOrgFlow("auth:salesforce:save", `--username=${username}`, `--password=${password}`, `--stack=${stackName}`);
         console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
     });
 }
@@ -8688,23 +8621,32 @@ exports.saveSalesforceCredentials = saveSalesforceCredentials;
 function setDefaultStack(stackName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Setting default stack '${stackName}'...`);
-        let stderr = "";
-        const exitCode = yield exec.exec("orgflow", [
-            "stack:setdefault",
-            `--name=${stackName}`,
-        ], {
-            ignoreReturnCode: true,
-            listeners: {
-                stderr: data => stderr += data.toString().trim(),
-            }
-        });
-        if (exitCode !== 0) {
-            throw new Error(`'orgflow stack:setdefault' failed with exit code ${exitCode}. STDERR: ${stderr}`);
-        }
+        yield execOrgFlow("stack:setdefault", `--name=${stackName}`);
         console.log(`Stack '${stackName}' was sucessfully set as default.`);
     });
 }
 exports.setDefaultStack = setDefaultStack;
+function execOrgFlow(commandName, ...args) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let stdout = "";
+        let stderr = "";
+        const exitCode = yield exec.exec("orgflow", [
+            commandName,
+            ...args
+        ], {
+            ignoreReturnCode: true,
+            //outStream: createWriteStream(devNull), // Output from command may reveal lots of info and should not end up in workflow logs
+            listeners: {
+                stdout: data => stdout += data.toString().trim(),
+                stderr: data => stderr += data.toString().trim(),
+            }
+        });
+        if (exitCode !== 0) {
+            throw new Error(`'orgflow ${commandName}' failed with exit code ${exitCode}. STDERR: ${stderr}`);
+        }
+        return stdout;
+    });
+}
 
 
 /***/ }),
