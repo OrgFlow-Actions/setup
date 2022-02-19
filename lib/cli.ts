@@ -21,7 +21,7 @@ export async function getInstalledVersion()
 	{
 		try
 		{
-			const installedVersion = await execOrgFlow("--version");
+			installedVersion = await execOrgFlow("--version");
 			console.log(`'orgflow --version' returned '${installedVersion}'.`);
 		}
 		catch (error)

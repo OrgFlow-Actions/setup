@@ -8572,7 +8572,7 @@ function getInstalledVersion() {
         }
         else {
             try {
-                const installedVersion = yield execOrgFlow("--version");
+                installedVersion = yield execOrgFlow("--version");
                 console.log(`'orgflow --version' returned '${installedVersion}'.`);
             }
             catch (error) {
