@@ -6,14 +6,18 @@ jobs:
     runs-on: ubuntu-latest
     container: orgflow/cli:1.3.x
     name: Setup
+    outputs:
+      stack-name: ${{ steps.create_stack.outputs.stack-name }}
     steps:
-      - name: Create temporary stack
+      - id: create_stack
+        name: Create temporary stack
         run: |
           mkdir /tmp/$STACKNAME
           git init --bare -b main /tmp/$STACKNAME
           orgflow stack:create --name=$STACKNAME --gitRepoUrl=/tmp/$STACKNAME --username=${{ secrets.SALESFORCE_USERNAME }} --password=${{ secrets.SALESFORCE_PASSWORD }} --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
+          echo "::set-output name=stack-name::$STACKNAME"
         env:
-          STACKNAME: TestStack_${{github.run_id}}_${{github.run_number}}
+          STACKNAME: TestStack_${{ github.run_id }}_${{ github.run_number }}
 
   test_job:
     runs-on: ubuntu-latest
@@ -32,7 +36,7 @@ jobs:
           salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
           git-username: DimitriusWoodward # Bogus
           git-password: tMfxyRCtnulUxXZl # Bogus
-          stack-name: TestStack_${{github.run_id}}_${{github.run_number}}
+          stack-name: ${{ needs.setup_job.outputs.stack-name }}
         env:
           ORGFLOW_ACCEPTEULA: "true"
       - name: Print outputs
@@ -54,4 +58,4 @@ jobs:
         run: |
           orgflow stack:delete --name=$STACKNAME --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula --noConfirm
         env:
-          STACKNAME: TestStack_${{github.run_id}}_${{github.run_number}}
+          STACKNAME: ${{ needs.setup_job.outputs.stack-name }}
