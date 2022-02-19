@@ -2,12 +2,13 @@
 ** This module provides functionality to interact with Git.
 */
 
+import * as core from "@actions/core";
 import * as exec from "@actions/exec";
 import { createEncryptionKey, getCredentialHelperCommandLine, saveGitCredentials } from "./cli";
 
 export async function configureGitAuthentication(username: string, password: string, stackName: string)
 {
-	console.log(`Configuring Git authentication for stack '${stackName}'...`);
+	core.debug(`Configuring Git authentication for stack '${stackName}'...`);
 
 	// Save Git credentials locally encrypted with a unique encryption key:
 	const encryptionKey = await createEncryptionKey(stackName);
@@ -20,25 +21,25 @@ export async function configureGitAuthentication(username: string, password: str
 	// Add a 24-hour credential helper cache to reduce the amount of calls into OrgFlow:
 	await addCredentialHelper("cache --timeout=86400");
 
-	console.log(`Git authentication was configured successfully for stack '${stackName}'.`);
+	core.debug(`Git authentication was configured successfully for stack '${stackName}'.`);
 }
 
 export async function setCommitterName(committerName: string)
 {
-	console.log(`Setting Git committer name globally as '${committerName}'...`);
+	core.debug(`Setting Git committer name globally as '${committerName}'...`);
 
 	await execGit("config", "--global", "user.name", `"${committerName}"`);
 
-	console.log("Git committer name was set successfully.");
+	core.debug("Git committer name was set successfully.");
 }
 
 export async function setCommitterEmail(committerEmail: string)
 {
-	console.log(`Setting Git committer email globally as '${committerEmail}'...`);
+	core.debug(`Setting Git committer email globally as '${committerEmail}'...`);
 
 	await execGit("config", "--global", "user.email", `"${committerEmail}"`);
 
-	console.log("Git committer email was set successfully.");
+	core.debug("Git committer email was set successfully.");
 }
 
 async function addCredentialHelper(credentialHelper: string)

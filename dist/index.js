@@ -8525,31 +8525,37 @@ function run() {
                 throw new Error("Input value 'stack-name' is required when saving Git credentials.");
             }
             // Download and install:
-            const installedVersion = yield (0, install_1.install)(versionSpec, includePrerelease, skipInstall);
+            const installedVersion = yield core.group("Install", () => (0, install_1.install)(versionSpec, includePrerelease, skipInstall));
             core.setOutput("version", installedVersion);
             // Validate and save license key:
-            yield (0, cli_1.setLicenseKey)(licenseKey);
+            yield core.group("Set license key", () => (0, cli_1.setLicenseKey)(licenseKey));
             // Save Salesforce credentials:
             if (salesforcePassword) {
-                const encryptionKey = yield (0, cli_1.createEncryptionKey)(stackName);
-                yield (0, cli_1.saveEncryptionKey)(encryptionKey, stackName);
-                yield (0, cli_1.saveSalesforceCredentials)(salesforceUsername, salesforcePassword, stackName);
-                core.setSecret(encryptionKey); // Mask encryption key in logs
-                core.setOutput("encryption-key", encryptionKey);
+                yield core.group("Save Salesforce credentials", () => __awaiter(this, void 0, void 0, function* () {
+                    const encryptionKey = yield (0, cli_1.createEncryptionKey)(stackName);
+                    yield (0, cli_1.saveEncryptionKey)(encryptionKey, stackName);
+                    yield (0, cli_1.saveSalesforceCredentials)(salesforceUsername, salesforcePassword, stackName);
+                    core.setSecret(encryptionKey); // Mask encryption key in logs
+                    core.setOutput("encryption-key", encryptionKey);
+                }));
             }
             // Configure Git authentication and committer signature:
             if (gitPassword) {
-                yield (0, git_1.configureGitAuthentication)(gitUsername, gitPassword, stackName);
+                yield core.group("Configure Git authentication", () => (0, git_1.configureGitAuthentication)(gitUsername, gitPassword, stackName));
             }
-            if (gitCommitterName) {
-                yield (0, git_1.setCommitterName)(gitCommitterName);
-            }
-            if (gitCommitterEmail) {
-                yield (0, git_1.setCommitterEmail)(gitCommitterEmail);
+            if (gitCommitterName || gitCommitterEmail) {
+                yield core.group("Configure Git committer", () => __awaiter(this, void 0, void 0, function* () {
+                    if (gitCommitterName) {
+                        yield (0, git_1.setCommitterName)(gitCommitterName);
+                    }
+                    if (gitCommitterEmail) {
+                        yield (0, git_1.setCommitterEmail)(gitCommitterEmail);
+                    }
+                }));
             }
             // Set default stack:
             if (stackName) {
-                yield (0, cli_1.setDefaultStack)(stackName);
+                yield core.group("Set default stack", () => (0, cli_1.setDefaultStack)(stackName));
             }
         }
         catch (error) {
@@ -8582,25 +8588,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setDefaultStack = exports.getCredentialHelperCommandLine = exports.saveGitCredentials = exports.saveSalesforceCredentials = exports.saveEncryptionKey = exports.createEncryptionKey = exports.setLicenseKey = exports.getInstalledVersion = void 0;
+const core = __nccwpck_require__(6024);
 const io = __nccwpck_require__(6202);
 const exec = __nccwpck_require__(2423);
 // import { createWriteStream } from "fs";
 // import { devNull } from "os";
 function getInstalledVersion() {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("Running 'orgflow --version' to get current installed version...");
+        core.debug("Running 'orgflow --version' to get current installed version...");
         let installedVersion = null;
         if (!(yield io.which("orgflow"))) {
-            console.log("Executable 'orgflow' could not be found; no installed version.");
+            core.debug("Executable 'orgflow' could not be found; no installed version.");
         }
         else {
             try {
                 installedVersion = yield execOrgFlow("--version");
-                console.log(`'orgflow --version' returned '${installedVersion}'.`);
+                core.debug(`'orgflow --version' returned '${installedVersion}'.`);
             }
             catch (error) {
-                console.log("Error while running 'orgflow --version'; CLI is likely not installed correctly.");
-                console.log(error);
+                core.warning("Error while running 'orgflow --version'; CLI is likely not installed correctly.");
+                core.warning(error);
             }
         }
         return installedVersion;
@@ -8609,43 +8616,43 @@ function getInstalledVersion() {
 exports.getInstalledVersion = getInstalledVersion;
 function setLicenseKey(licenseKey) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("Validating license key...");
+        core.debug("Validating license key...");
         // Use the stack:list command to set license key (somewhat arbitrary, we currently don't have a better way).
         yield execOrgFlow("stack:list", `--licenseKey=${licenseKey}`);
-        console.log("License key was successfully validated and saved.");
+        core.debug("License key was successfully validated and saved.");
     });
 }
 exports.setLicenseKey = setLicenseKey;
 function createEncryptionKey(stackName) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("Creating new encryption key...");
+        core.debug("Creating new encryption key...");
         const encryptionKey = yield execOrgFlow("auth:key:create", "--output=flat");
-        console.log("New encryption key was successfully created.");
+        core.debug("New encryption key was successfully created.");
         return encryptionKey;
     });
 }
 exports.createEncryptionKey = createEncryptionKey;
 function saveEncryptionKey(encryptionKey, stackName) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(`Saving encryption key locally for stack '${stackName}'...`);
+        core.debug(`Saving encryption key locally for stack '${stackName}'...`);
         yield execOrgFlow("auth:key:save", `--encryptionKey=${encryptionKey}`, `--stack="${stackName}"`);
-        console.log(`Encryption key was saved successfully for stack '${stackName}'.`);
+        core.debug(`Encryption key was saved successfully for stack '${stackName}'.`);
     });
 }
 exports.saveEncryptionKey = saveEncryptionKey;
 function saveSalesforceCredentials(username, password, stackName) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(`Saving Salesforce credentials locally for stack '${stackName}'...`);
+        core.debug(`Saving Salesforce credentials locally for stack '${stackName}'...`);
         yield execOrgFlow("auth:salesforce:save", `--username="${username}"`, `--password="${password}"`, `--stack="${stackName}"`, "--location=local");
-        console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
+        core.debug(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
     });
 }
 exports.saveSalesforceCredentials = saveSalesforceCredentials;
 function saveGitCredentials(username, password, encryptionKey, stackName) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(`Saving Git credentials locally for stack '${stackName}'...`);
+        core.debug(`Saving Git credentials locally for stack '${stackName}'...`);
         yield execOrgFlow("auth:git:save", `--username="${username}"`, `--password="${password}"`, `--encryptionKey=${encryptionKey}`, `--stack="${stackName}"`, "--location=local");
-        console.log(`Git credentials were saved successfully for stack '${stackName}'.`);
+        core.debug(`Git credentials were saved successfully for stack '${stackName}'.`);
     });
 }
 exports.saveGitCredentials = saveGitCredentials;
@@ -8655,9 +8662,9 @@ function getCredentialHelperCommandLine(encryptionKey, stackName) {
 exports.getCredentialHelperCommandLine = getCredentialHelperCommandLine;
 function setDefaultStack(stackName) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(`Setting default stack '${stackName}'...`);
+        core.debug(`Setting default stack '${stackName}'...`);
         yield execOrgFlow("stack:setdefault", `--name="${stackName}"`);
-        console.log(`Stack '${stackName}' was sucessfully set as default.`);
+        core.debug(`Stack '${stackName}' was sucessfully set as default.`);
     });
 }
 exports.setDefaultStack = setDefaultStack;
@@ -8706,21 +8713,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getLatestZipFileInfo = void 0;
+const core = __nccwpck_require__(6024);
 const axios_1 = __nccwpck_require__(992);
 const utils_1 = __nccwpck_require__(4260);
 const productId = "cli"; // Download service product identifier
 function getLatestZipFileInfo(versionSpec, includePrerelease) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("Checking service for latest available version...");
+        core.debug("Checking service for latest available version...");
         const runtimeId = (0, utils_1.getRuntimeId)();
         const latestZipFileInfoUrl = new URL(`https://orgflow-dv2-apim.azure-api.net/download/v2/${productId}/${runtimeId}/latest/zip`);
         //let latestZipFileInfoUrl = `https://prod.orgflow.app/download/v2/${productId}/${runtimeId}/latest/zip`;
         if (versionSpec) {
-            console.log(`Using version filter '${versionSpec}'.`);
+            core.debug(`Using version filter '${versionSpec}'.`);
             latestZipFileInfoUrl.searchParams.append("versionFilter", versionSpec);
         }
         if (includePrerelease) {
-            console.log("Including prerelease versions in search.");
+            core.debug("Including prerelease versions in search.");
             latestZipFileInfoUrl.searchParams.append("includePrerelease", "true");
         }
         const response = yield axios_1.default.get(latestZipFileInfoUrl.href, { validateStatus: status => status == 200 || status == 404 });
@@ -8728,7 +8736,7 @@ function getLatestZipFileInfo(versionSpec, includePrerelease) {
             throw new Error(`No available version matching version spec '${versionSpec}' was found in download service.`);
         }
         const latestZipFileInfo = response.data;
-        console.log(`Latest available version: ${latestZipFileInfo.versionString}`);
+        core.debug(`Latest available version: ${latestZipFileInfo.versionString}`);
         return latestZipFileInfo;
     });
 }
@@ -8756,11 +8764,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setCommitterEmail = exports.setCommitterName = exports.configureGitAuthentication = void 0;
+const core = __nccwpck_require__(6024);
 const exec = __nccwpck_require__(2423);
 const cli_1 = __nccwpck_require__(4657);
 function configureGitAuthentication(username, password, stackName) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(`Configuring Git authentication for stack '${stackName}'...`);
+        core.debug(`Configuring Git authentication for stack '${stackName}'...`);
         // Save Git credentials locally encrypted with a unique encryption key:
         const encryptionKey = yield (0, cli_1.createEncryptionKey)(stackName);
         yield (0, cli_1.saveGitCredentials)(username, password, encryptionKey, stackName);
@@ -8769,23 +8778,23 @@ function configureGitAuthentication(username, password, stackName) {
         yield addCredentialHelper(`!${orgFlowCredentialHelper}`); // prefix with '!' to indicate execution as a shell command, see https://git-scm.com/docs/git-config#Documentation/git-config.txt-alias
         // Add a 24-hour credential helper cache to reduce the amount of calls into OrgFlow:
         yield addCredentialHelper("cache --timeout=86400");
-        console.log(`Git authentication was configured successfully for stack '${stackName}'.`);
+        core.debug(`Git authentication was configured successfully for stack '${stackName}'.`);
     });
 }
 exports.configureGitAuthentication = configureGitAuthentication;
 function setCommitterName(committerName) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(`Setting Git committer name globally as '${committerName}'...`);
+        core.debug(`Setting Git committer name globally as '${committerName}'...`);
         yield execGit("config", "--global", "user.name", `"${committerName}"`);
-        console.log("Git committer name was set successfully.");
+        core.debug("Git committer name was set successfully.");
     });
 }
 exports.setCommitterName = setCommitterName;
 function setCommitterEmail(committerEmail) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(`Setting Git committer email globally as '${committerEmail}'...`);
+        core.debug(`Setting Git committer email globally as '${committerEmail}'...`);
         yield execGit("config", "--global", "user.email", `"${committerEmail}"`);
-        console.log("Git committer email was set successfully.");
+        core.debug("Git committer email was set successfully.");
     });
 }
 exports.setCommitterEmail = setCommitterEmail;
@@ -8845,40 +8854,40 @@ const download_1 = __nccwpck_require__(4674);
 const toolName = "orgflow"; // GHA tool cache key
 function install(versionSpec, includePrerelease, skipInstall) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("Checking installed version...");
+        core.debug("Checking installed version...");
         let installedVersion = yield (0, cli_1.getInstalledVersion)();
         if (installedVersion) {
-            console.log(`Version '${installedVersion}' is installed.`);
+            core.debug(`Version '${installedVersion}' is installed.`);
         }
         else {
-            console.log("No installed version was detected.");
+            core.debug("No installed version was detected.");
         }
         if (skipInstall) {
-            console.log("skipInstall=true; skipping install.");
+            core.debug("skipInstall=true; skipping install.");
             return installedVersion;
         }
         const latestZipFileInfo = yield (0, download_1.getLatestZipFileInfo)(versionSpec, includePrerelease);
         if (installedVersion === latestZipFileInfo.versionString) {
-            console.log(`Version '${installedVersion}' is already installed; skipping installation.`);
+            core.notice(`Version '${installedVersion}' is already installed; skipping installation.`);
             return installedVersion;
         }
         const allVersions = cache.findAllVersions(toolName);
-        console.log(`Versions in tool cache: ${allVersions}`);
+        core.debug(`Versions in tool cache: ${allVersions}`);
         let cliDirPath = cache.find(toolName, latestZipFileInfo.versionString);
         if (!cliDirPath) {
-            console.log(`Version ${latestZipFileInfo.versionString} not available in tool cache; downloading from service...`);
+            core.debug(`Version ${latestZipFileInfo.versionString} not available in tool cache; downloading from service...`);
             const tempZipFilePath = yield cache.downloadTool(latestZipFileInfo.downloadUrl);
             const tempCliDirPath = yield cache.extractZip(tempZipFilePath);
-            console.log(`Version ${latestZipFileInfo.versionString} was successfully downloaded and extracted to '${tempCliDirPath}'.`);
+            core.notice(`Version ${latestZipFileInfo.versionString} was successfully downloaded and extracted to '${tempCliDirPath}'.`);
             cliDirPath = yield cache.cacheDir(tempCliDirPath, toolName, latestZipFileInfo.versionString);
-            console.log(`Version ${latestZipFileInfo.versionString} was added to tool cache.`);
+            core.debug(`Version ${latestZipFileInfo.versionString} was added to tool cache.`);
         }
         else {
-            console.log(`Using version in tool cache at '${cliDirPath}'.`);
+            core.notice(`Using version in tool cache at '${cliDirPath}'.`);
         }
         core.addPath(cliDirPath);
         const cliPath = yield io.which("orgflow");
-        console.log(`CLI on PATH: '${cliPath}'.`);
+        core.debug(`CLI on PATH: '${cliPath}'.`);
         // Re-check installed version after installation:
         installedVersion = yield (0, cli_1.getInstalledVersion)();
         if (installedVersion !== latestZipFileInfo.versionString) {

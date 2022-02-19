@@ -59,48 +59,57 @@ export async function run()
 
 		// Download and install:
 
-		const installedVersion = await install(versionSpec, includePrerelease, skipInstall);
+		const installedVersion = await core.group("Install", () => install(versionSpec, includePrerelease, skipInstall));
 
 		core.setOutput("version", installedVersion);
 
 		// Validate and save license key:
 
-		await setLicenseKey(licenseKey);
+		await core.group("Set license key", () => setLicenseKey(licenseKey));
 
 		// Save Salesforce credentials:
 
 		if (salesforcePassword)
 		{
-			const encryptionKey = await createEncryptionKey(stackName);
-			await saveEncryptionKey(encryptionKey, stackName);
-			await saveSalesforceCredentials(salesforceUsername, salesforcePassword, stackName);
+			await core.group("Save Salesforce credentials", async () =>
+			{
+				const encryptionKey = await createEncryptionKey(stackName);
+				await saveEncryptionKey(encryptionKey, stackName);
+				await saveSalesforceCredentials(salesforceUsername, salesforcePassword, stackName);
 
-			core.setSecret(encryptionKey); // Mask encryption key in logs
-			core.setOutput("encryption-key", encryptionKey);
+				core.setSecret(encryptionKey); // Mask encryption key in logs
+				core.setOutput("encryption-key", encryptionKey);
+			});
 		}
 
 		// Configure Git authentication and committer signature:
 
 		if (gitPassword)
 		{
-			await configureGitAuthentication(gitUsername, gitPassword, stackName);
+			await core.group("Configure Git authentication", () => configureGitAuthentication(gitUsername, gitPassword, stackName));
 		}
 
-		if (gitCommitterName)
+		if (gitCommitterName || gitCommitterEmail)
 		{
-			await setCommitterName(gitCommitterName);
-		}
+			await core.group("Configure Git committer", async () =>
+			{
+				if (gitCommitterName)
+				{
+					await setCommitterName(gitCommitterName);
+				}
 
-		if (gitCommitterEmail)
-		{
-			await setCommitterEmail(gitCommitterEmail);
+				if (gitCommitterEmail)
+				{
+					await setCommitterEmail(gitCommitterEmail);
+				}
+			});
 		}
 
 		// Set default stack:
 
 		if (stackName)
 		{
-			await setDefaultStack(stackName);
+			await core.group("Set default stack", () => setDefaultStack(stackName));
 		}
 	}
 	catch (error)

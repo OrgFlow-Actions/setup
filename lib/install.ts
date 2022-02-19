@@ -12,20 +12,20 @@ const toolName = "orgflow"; // GHA tool cache key
 
 export async function install(versionSpec: string | null, includePrerelease: boolean, skipInstall: boolean)
 {
-	console.log("Checking installed version...");
+	core.debug("Checking installed version...");
 	let installedVersion = await getInstalledVersion();
 	if (installedVersion)
 	{
-		console.log(`Version '${installedVersion}' is installed.`);
+		core.debug(`Version '${installedVersion}' is installed.`);
 	}
 	else
 	{
-		console.log("No installed version was detected.");
+		core.debug("No installed version was detected.");
 	}
 
 	if (skipInstall)
 	{
-		console.log("skipInstall=true; skipping install.");
+		core.debug("skipInstall=true; skipping install.");
 		return installedVersion;
 	}
 
@@ -33,32 +33,32 @@ export async function install(versionSpec: string | null, includePrerelease: boo
 
 	if (installedVersion === latestZipFileInfo.versionString)
 	{
-		console.log(`Version '${installedVersion}' is already installed; skipping installation.`);
+		core.notice(`Version '${installedVersion}' is already installed; skipping installation.`);
 		return installedVersion;
 	}
 
 	const allVersions = cache.findAllVersions(toolName);
-	console.log(`Versions in tool cache: ${allVersions}`);
+	core.debug(`Versions in tool cache: ${allVersions}`);
 
 	let cliDirPath = cache.find(toolName, latestZipFileInfo.versionString);
 
 	if (!cliDirPath)
 	{
-		console.log(`Version ${latestZipFileInfo.versionString} not available in tool cache; downloading from service...`);
+		core.debug(`Version ${latestZipFileInfo.versionString} not available in tool cache; downloading from service...`);
 		const tempZipFilePath = await cache.downloadTool(latestZipFileInfo.downloadUrl);
 		const tempCliDirPath = await cache.extractZip(tempZipFilePath);
-		console.log(`Version ${latestZipFileInfo.versionString} was successfully downloaded and extracted to '${tempCliDirPath}'.`);
+		core.notice(`Version ${latestZipFileInfo.versionString} was successfully downloaded and extracted to '${tempCliDirPath}'.`);
 		cliDirPath = await cache.cacheDir(tempCliDirPath, toolName, latestZipFileInfo.versionString);
-		console.log(`Version ${latestZipFileInfo.versionString} was added to tool cache.`);
+		core.debug(`Version ${latestZipFileInfo.versionString} was added to tool cache.`);
 	}
 	else
 	{
-		console.log(`Using version in tool cache at '${cliDirPath}'.`);
+		core.notice(`Using version in tool cache at '${cliDirPath}'.`);
 	}
 
 	core.addPath(cliDirPath);
 	const cliPath = await io.which("orgflow");
-	console.log(`CLI on PATH: '${cliPath}'.`);
+	core.debug(`CLI on PATH: '${cliPath}'.`);
 
 	// Re-check installed version after installation:
 	installedVersion = await getInstalledVersion();
