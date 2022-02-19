@@ -8670,7 +8670,8 @@ function execOrgFlow(commandName, ...args) {
             ...args
         ], {
             ignoreReturnCode: true,
-            //outStream: createWriteStream(devNull), // Output from command may reveal lots of info and should not end up in workflow logs
+            silent: true,
+            //outStream: createWriteStream(devNull), // Output from command may reveal sensitive info and should not end up in logs
             listeners: {
                 stdout: data => stdout += data.toString().trim(),
                 stderr: data => stderr += data.toString().trim(),

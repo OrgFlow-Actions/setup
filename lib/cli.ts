@@ -37,48 +37,59 @@ export async function getInstalledVersion()
 export async function setLicenseKey(licenseKey: string)
 {
 	console.log("Validating license key...");
+
 	// Use the stack:list command to set license key (somewhat arbitrary, we currently don't have a better way).
 	await execOrgFlow("stack:list", `--licenseKey=${licenseKey}`);
+
 	console.log("License key was successfully validated and saved.");
 }
 
 export async function createEncryptionKey(stackName: string)
 {
 	console.log("Creating new encryption key...");
+
 	const encryptionKey = await execOrgFlow("auth:key:create", "--output=flat");
+
 	console.log("New encryption key was successfully created.");
+
 	return encryptionKey;
 }
 
 export async function saveEncryptionKey(encryptionKey: string, stackName: string)
 {
 	console.log(`Saving encryption key locally for stack '${stackName}'...`);
+
 	await execOrgFlow("auth:key:save",
 		`--encryptionKey=${encryptionKey}`,
 		`--stack="${stackName}"`);
+
 	console.log(`Encryption key was saved successfully for stack '${stackName}'.`);
 }
 
 export async function saveSalesforceCredentials(username: string, password: string, stackName: string)
 {
 	console.log(`Saving Salesforce credentials locally for stack '${stackName}'...`);
+
 	await execOrgFlow("auth:salesforce:save",
 		`--username="${username}"`,
 		`--password="${password}"`,
 		`--stack="${stackName}"`,
 		"--location=local");
+
 	console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
 }
 
 export async function saveGitCredentials(username: string, password: string, encryptionKey: string, stackName: string)
 {
 	console.log(`Saving Git credentials locally for stack '${stackName}'...`);
+
 	await execOrgFlow("auth:git:save",
 		`--username="${username}"`,
 		`--password="${password}"`,
 		`--encryptionKey=${encryptionKey}`,
 		`--stack="${stackName}"`,
 		"--location=local");
+
 	console.log(`Git credentials were saved successfully for stack '${stackName}'.`);
 }
 
@@ -90,7 +101,9 @@ export function getCredentialHelperCommandLine(encryptionKey: string, stackName:
 export async function setDefaultStack(stackName: string)
 {
 	console.log(`Setting default stack '${stackName}'...`);
+
 	await execOrgFlow("stack:setdefault", `--name="${stackName}"`);
+
 	console.log(`Stack '${stackName}' was sucessfully set as default.`);
 }
 
@@ -106,7 +119,8 @@ async function execOrgFlow(commandName: string, ...args: string[])
 		],
 		{
 			ignoreReturnCode: true,
-			//outStream: createWriteStream(devNull), // Output from command may reveal lots of info and should not end up in workflow logs
+			silent: true,
+			//outStream: createWriteStream(devNull), // Output from command may reveal sensitive info and should not end up in logs
 			listeners: {
 				stdout: data => stdout += data.toString().trim(),
 				stderr: data => stderr += data.toString().trim(),
