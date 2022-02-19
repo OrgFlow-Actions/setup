@@ -33,11 +33,13 @@ jobs:
           stack-name: TestStack_${{github.run_id}}_${{github.run_number}}
         env:
           ORGFLOW_ACCEPTEULA: "true"
-        run: orgflow env:list
       - name: Print outputs
         run: |
           echo "Version: ${{ steps.setup.outputs.version }}"
           echo "Encryption key: ${{ steps.setup.outputs.encryption-key }}"
+      - name: Test persisted config
+        run: |
+          orgflow env:list
 
   delete_stack:
     runs-on: ubuntu-latest
