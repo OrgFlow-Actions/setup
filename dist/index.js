@@ -8677,7 +8677,7 @@ function execOrgFlow(commandName, ...args) {
             ...args
         ], {
             ignoreReturnCode: true,
-            silent: true,
+            //silent: true,
             //outStream: createWriteStream(devNull), // Output from command may reveal sensitive info and should not end up in logs
             listeners: {
                 stdout: data => stdout += data.toString().trim(),
