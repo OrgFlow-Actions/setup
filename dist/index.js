@@ -8790,7 +8790,7 @@ function setCommitterEmail(committerEmail) {
 exports.setCommitterEmail = setCommitterEmail;
 function addCredentialHelper(credentialHelper) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield execGit("config", "--global", "--add", "credential-helper", `"${credentialHelper}"`);
+        yield execGit("config", "--global", "--add", "credential.helper", `"${credentialHelper}"`);
     });
 }
 function execGit(commandName, ...args) {

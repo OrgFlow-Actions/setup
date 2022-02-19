@@ -39,7 +39,7 @@ export async function setCommitterEmail(committerEmail: string)
 
 async function addCredentialHelper(credentialHelper: string)
 {
-	await execGit("config", "--global", "--add", "credential-helper", `"${credentialHelper}"`);
+	await execGit("config", "--global", "--add", "credential.helper", `"${credentialHelper}"`);
 }
 
 async function execGit(commandName: string, ...args: string[])
