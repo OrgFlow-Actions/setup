@@ -7,14 +7,14 @@ import * as exec from "@actions/exec";
 export async function setCommitterName(committerName: string)
 {
 	console.log(`Setting Git committer name globally as '${committerName}'...`);
-	await execGit("config", "--global", "user.name", committerName);
+	await execGit("config", "--global", "user.name", `"${committerName}"`);
 	console.log("Git committer name was set successfully.");
 }
 
 export async function setCommitterEmail(committerEmail: string)
 {
 	console.log(`Setting Git committer email globally as '${committerEmail}'...`);
-	await execGit("config", "--global", "user.email", committerEmail);
+	await execGit("config", "--global", "user.email", `"${committerEmail}"`);
 	console.log("Git committer email was set successfully.");
 }
 

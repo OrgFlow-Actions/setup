@@ -8614,7 +8614,7 @@ exports.createEncryptionKey = createEncryptionKey;
 function saveEncryptionKey(encryptionKey, stackName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Saving encryption key locally for stack '${stackName}'...`);
-        yield execOrgFlow("auth:key:save", `--encryptionKey=${encryptionKey}`, `--stack=${stackName}`);
+        yield execOrgFlow("auth:key:save", `--encryptionKey=${encryptionKey}`, `--stack="${stackName}"`);
         console.log(`Encryption key was saved successfully for stack '${stackName}'.`);
     });
 }
@@ -8622,7 +8622,7 @@ exports.saveEncryptionKey = saveEncryptionKey;
 function saveSalesforceCredentials(username, password, stackName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Saving Salesforce credentials locally for stack '${stackName}'...`);
-        yield execOrgFlow("auth:salesforce:save", `--username=${username}`, `--password=${password}`, `--stack=${stackName}`);
+        yield execOrgFlow("auth:salesforce:save", `--username="${username}"`, `--password="${password}"`, `--stack="${stackName}"`);
         console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
     });
 }
@@ -8630,7 +8630,7 @@ exports.saveSalesforceCredentials = saveSalesforceCredentials;
 function setDefaultStack(stackName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Setting default stack '${stackName}'...`);
-        yield execOrgFlow("stack:setdefault", `--name=${stackName}`);
+        yield execOrgFlow("stack:setdefault", `--name="${stackName}"`);
         console.log(`Stack '${stackName}' was sucessfully set as default.`);
     });
 }
@@ -8733,7 +8733,7 @@ const exec = __nccwpck_require__(2423);
 function setCommitterName(committerName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Setting Git committer name globally as '${committerName}'...`);
-        yield execGit("config", "--global", "user.name", committerName);
+        yield execGit("config", "--global", "user.name", `"${committerName}"`);
         console.log("Git committer name was set successfully.");
     });
 }
@@ -8741,7 +8741,7 @@ exports.setCommitterName = setCommitterName;
 function setCommitterEmail(committerEmail) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Setting Git committer email globally as '${committerEmail}'...`);
-        yield execGit("config", "--global", "user.email", committerEmail);
+        yield execGit("config", "--global", "user.email", `"${committerEmail}"`);
         console.log("Git committer email was set successfully.");
     });
 }

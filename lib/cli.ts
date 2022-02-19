@@ -55,7 +55,7 @@ export async function saveEncryptionKey(encryptionKey: string, stackName: string
 	console.log(`Saving encryption key locally for stack '${stackName}'...`);
 	await execOrgFlow("auth:key:save",
 		`--encryptionKey=${encryptionKey}`,
-		`--stack=${stackName}`);
+		`--stack="${stackName}"`);
 	console.log(`Encryption key was saved successfully for stack '${stackName}'.`);
 }
 
@@ -63,16 +63,16 @@ export async function saveSalesforceCredentials(username: string, password: stri
 {
 	console.log(`Saving Salesforce credentials locally for stack '${stackName}'...`);
 	await execOrgFlow("auth:salesforce:save",
-		`--username=${username}`,
-		`--password=${password}`,
-		`--stack=${stackName}`);
+		`--username="${username}"`,
+		`--password="${password}"`,
+		`--stack="${stackName}"`);
 	console.log(`Salesforce credentials were saved successfully for stack '${stackName}'.`);
 }
 
 export async function setDefaultStack(stackName: string)
 {
 	console.log(`Setting default stack '${stackName}'...`);
-	await execOrgFlow("stack:setdefault", `--name=${stackName}`);
+	await execOrgFlow("stack:setdefault", `--name="${stackName}"`);
 	console.log(`Stack '${stackName}' was sucessfully set as default.`);
 }
 
