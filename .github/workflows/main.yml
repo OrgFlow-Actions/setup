@@ -10,7 +10,7 @@ jobs:
       - run: |
           mkdir /tmp/TestStack1
           git init -b main /tmp/TestStack1
-          orgflow stack:create --name=TestStack1 --gitRepoUrl=/tmp/TestStack1 --username=${{ secrets.SALESFORCE_USERNAME }} --password=${{ secrets.SALESFORCE_PASSWORD }} --include=code --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
+          orgflow stack:create --name=TestStack1 --gitRepoUrl=/tmp/TestStack1 --username=${{ secrets.SALESFORCE_USERNAME }} --password=${{ secrets.SALESFORCE_PASSWORD }} --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
 
   test_setup:
     runs-on: ubuntu-latest
