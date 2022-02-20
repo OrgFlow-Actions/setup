@@ -17,13 +17,13 @@ inputs:
     required: false
     default: "false"
   license-key:
-    description: Your OrgFlow license key (you can get one at https://www.orgflow.io if you do not already have one).
+    description: Your OrgFlow license key (you can get one at https://www.orgflow.io/trial if you do not already have one).
     required: true
   salesforce-username:
-    description: Save username for connecting to production Salesforce org (stored in encrypted form).
+    description: Save username for connecting to production Salesforce org (stored on runner in encrypted form).
     required: false
   salesforce-password:
-    description: Save password for connecting to production Salesforce org (stored in encrypted form).
+    description: Save password for connecting to production Salesforce org (stored on runner in encrypted form).
     required: false
   git-username:
     description: Save username for connecting to remote Git repository (not needed if connecting to a GitHub repository).
