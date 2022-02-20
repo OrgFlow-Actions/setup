@@ -31,7 +31,7 @@ This action works on:
 - Ubuntu, macOS and Windows
 - The `orgflow/cli` Docker image, or your own Docker image
 
-For self-hosted runners and third-party Docker containers, Git version 2.25 or later is required. When running on GitHub-hosted runners or our Docker images, all requirements are already met.
+Git version 2.25 or later is required. When running on GitHub-hosted runners or on our Docker images, all requirements are met.
 
 ## Inputs
 
