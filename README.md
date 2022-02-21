@@ -52,10 +52,10 @@ Git version 2.25 or later is required. When running on GitHub-hosted runners or 
 
 ## Outputs
 
-| Name             | Description                                                                          |
-| ---------------- | ------------------------------------------------------------------------------------ |
-| `version`        | Exact version of OrgFlow that was installed and/or configured.                       |
-| `encryption-key` | Encryption key that was created and used to encrypt Salesforce credentials (if set). |
+| Name             | Description                                                    |
+| ---------------- | -------------------------------------------------------------- |
+| `version`        | Exact version of OrgFlow that was installed and/or configured. |
+| `encryption-key` | Encryption key that was saved.                                 |
 
 ## Examples
 

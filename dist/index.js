@@ -14890,7 +14890,7 @@ function run() {
             yield core.group("Set license key", () => (0, cli_1.setLicenseKey)(licenseKey));
             // Create (if needed) and save encryption key:
             const encryptionKey = yield core.group("Save encryption key", () => __awaiter(this, void 0, void 0, function* () {
-                const encryptionKey = encryptionKeyInput !== null && encryptionKeyInput !== void 0 ? encryptionKeyInput : yield (0, cli_1.createEncryptionKey)();
+                const encryptionKey = encryptionKeyInput || (yield (0, cli_1.createEncryptionKey)());
                 core.setSecret(encryptionKey); // Mask encryption key in logs
                 core.setOutput("encryption-key", encryptionKey);
                 if (stackName) {

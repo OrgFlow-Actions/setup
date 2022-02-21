@@ -49,7 +49,7 @@ outputs:
   version:
     description: Exact version of OrgFlow that was installed and/or configured.
   encryption-key:
-    description: Encryption key that was used to encrypt Salesforce and/or Git credentials and saved.
+    description: Encryption key that was saved.
 runs:
   using: node16
   main: dist/index.js

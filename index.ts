@@ -86,7 +86,7 @@ export async function run()
 
 		const encryptionKey = await core.group("Save encryption key", async () =>
 		{
-			const encryptionKey = encryptionKeyInput ?? await createEncryptionKey();
+			const encryptionKey = encryptionKeyInput || await createEncryptionKey();
 
 			core.setSecret(encryptionKey); // Mask encryption key in logs
 			core.setOutput("encryption-key", encryptionKey);
