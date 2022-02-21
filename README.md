@@ -1,6 +1,6 @@
-<p><img src="logo.svg" alt="OrgFlow Logo" width="200"/></p>
-
 # OrgFlow: Salesforce DevOps for GitHub
+
+<p><img src="logo.svg" alt="OrgFlow Logo" width="200"/></p>
 
 OrgFlow is a cross-platform DevOps tool that opens the Salesforce platform up to modern software development, version control, deployment and automation techniques.
 
