@@ -46,7 +46,7 @@ export async function setLicenseKey(licenseKey: string)
 	core.debug("License key was successfully validated and saved.");
 }
 
-export async function createEncryptionKey(stackName: string)
+export async function createEncryptionKey()
 {
 	core.debug("Creating new encryption key...");
 

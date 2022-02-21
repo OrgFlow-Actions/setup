@@ -4,14 +4,13 @@
 
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
-import { createEncryptionKey, getCredentialHelperCommandLine, saveGitCredentials } from "./cli";
+import { getCredentialHelperCommandLine, saveGitCredentials } from "./cli";
 
-export async function configureGitAuthentication(username: string, password: string, stackName: string)
+export async function configureGitAuthentication(username: string, password: string, encryptionKey: string, stackName: string)
 {
 	core.debug(`Configuring Git authentication for stack '${stackName}'...`);
 
-	// Save Git credentials locally encrypted with a unique encryption key:
-	const encryptionKey = await createEncryptionKey(stackName);
+	// Save Git credentials locally:
 	await saveGitCredentials(username, password, encryptionKey, stackName);
 
 	// Add OrgFlow as a Git credential helper:

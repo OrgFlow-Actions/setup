@@ -51,7 +51,7 @@ export async function run()
 			throw new Error("Input value 'git-username' must only be used when also using 'git-password'.");
 		}
 
-		const stackName = core.getInput("stack-name")
+		const stackName = core.getInput("stack-name");
 		if (!stackName && salesforcePassword)
 		{
 			throw new Error("Input value 'stack-name' is required when saving Salesforce credentials.");
@@ -59,6 +59,12 @@ export async function run()
 		if (!stackName && gitPassword)
 		{
 			throw new Error("Input value 'stack-name' is required when saving Git credentials.");
+		}
+
+		const encryptionKeyInput = core.getInput("encryption-key");
+		if (encryptionKeyInput && encryptionKeyInput.length !== 64)
+		{
+			throw new Error("Input value 'encryption-key' must consist of 64 hexadecimal characters if specified.");
 		}
 
 		// Configure logging:
@@ -76,26 +82,35 @@ export async function run()
 
 		await core.group("Set license key", () => setLicenseKey(licenseKey));
 
+		// Create (if needed) and save encryption key:
+
+		const encryptionKey = await core.group("Save encryption key", async () =>
+		{
+			const encryptionKey = encryptionKeyInput ?? await createEncryptionKey();
+
+			core.setSecret(encryptionKey); // Mask encryption key in logs
+			core.setOutput("encryption-key", encryptionKey);
+
+			if (stackName)
+			{
+				await saveEncryptionKey(encryptionKey, stackName);
+			}
+
+			return encryptionKey;
+		});
+
 		// Save Salesforce credentials:
 
 		if (salesforcePassword)
 		{
-			await core.group("Save Salesforce credentials", async () =>
-			{
-				const encryptionKey = await createEncryptionKey(stackName);
-				await saveEncryptionKey(encryptionKey, stackName);
-				await saveSalesforceCredentials(salesforceUsername, salesforcePassword, stackName);
-
-				core.setSecret(encryptionKey); // Mask encryption key in logs
-				core.setOutput("encryption-key", encryptionKey);
-			});
+			await core.group("Save Salesforce credentials", () => saveSalesforceCredentials(salesforceUsername, salesforcePassword, stackName));
 		}
 
 		// Configure Git authentication and committer signature:
 
 		if (gitPassword)
 		{
-			await core.group("Configure Git authentication", () => configureGitAuthentication(gitUsername, gitPassword, stackName));
+			await core.group("Configure Git authentication", () => configureGitAuthentication(gitUsername, gitPassword, encryptionKey, stackName));
 		}
 
 		if (gitCommitterName || gitCommitterEmail)

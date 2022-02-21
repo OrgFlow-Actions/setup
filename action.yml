@@ -6,7 +6,7 @@ branding:
   color: red
 inputs:
   version:
-    description: Version of OrgFlow to install. Can be specified as major '1', minor '1.1' or patch '1.1.1'; latest matching version will be installed. Omit to install latest available version.
+    description: Version of OrgFlow to install. Can be specified as major '1', minor '1.1' or patch '1.1.1'; latest matching version will be installed (omit to install latest available version).
     required: false
   include-prerelease:
     description: Include prerelease versions when determining latest available version.
@@ -42,11 +42,14 @@ inputs:
   stack-name:
     description: Name of OrgFlow stack to save credentials for (required when saving Salesforce or Git credentials).
     required: false
+  encryption-key:
+    description: Encryption key to use when encrypting and decrypting Salesforce and/or Git credentials (omit to generate a new encryption key).
+    required: false
 outputs:
   version:
     description: Exact version of OrgFlow that was installed and/or configured.
   encryption-key:
-    description: Encryption key that was created and used to encrypt Salesforce credentials (if set).
+    description: Encryption key that was used to encrypt Salesforce and/or Git credentials and saved.
 runs:
   using: node16
   main: dist/index.js

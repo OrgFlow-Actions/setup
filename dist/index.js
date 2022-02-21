@@ -14876,6 +14876,10 @@ function run() {
             if (!stackName && gitPassword) {
                 throw new Error("Input value 'stack-name' is required when saving Git credentials.");
             }
+            const encryptionKeyInput = core.getInput("encryption-key");
+            if (encryptionKeyInput && encryptionKeyInput.length !== 64) {
+                throw new Error("Input value 'encryption-key' must consist of 64 hexadecimal characters if specified.");
+            }
             // Configure logging:
             core.exportVariable("ORGFLOW_LOGFILEPATH", logFilePath);
             core.exportVariable("ORGFLOW_LOGLEVEL", "Verbose");
@@ -14884,19 +14888,23 @@ function run() {
             core.setOutput("version", installedVersion);
             // Validate and save license key:
             yield core.group("Set license key", () => (0, cli_1.setLicenseKey)(licenseKey));
+            // Create (if needed) and save encryption key:
+            const encryptionKey = yield core.group("Save encryption key", () => __awaiter(this, void 0, void 0, function* () {
+                const encryptionKey = encryptionKeyInput !== null && encryptionKeyInput !== void 0 ? encryptionKeyInput : yield (0, cli_1.createEncryptionKey)();
+                core.setSecret(encryptionKey); // Mask encryption key in logs
+                core.setOutput("encryption-key", encryptionKey);
+                if (stackName) {
+                    yield (0, cli_1.saveEncryptionKey)(encryptionKey, stackName);
+                }
+                return encryptionKey;
+            }));
             // Save Salesforce credentials:
             if (salesforcePassword) {
-                yield core.group("Save Salesforce credentials", () => __awaiter(this, void 0, void 0, function* () {
-                    const encryptionKey = yield (0, cli_1.createEncryptionKey)(stackName);
-                    yield (0, cli_1.saveEncryptionKey)(encryptionKey, stackName);
-                    yield (0, cli_1.saveSalesforceCredentials)(salesforceUsername, salesforcePassword, stackName);
-                    core.setSecret(encryptionKey); // Mask encryption key in logs
-                    core.setOutput("encryption-key", encryptionKey);
-                }));
+                yield core.group("Save Salesforce credentials", () => (0, cli_1.saveSalesforceCredentials)(salesforceUsername, salesforcePassword, stackName));
             }
             // Configure Git authentication and committer signature:
             if (gitPassword) {
-                yield core.group("Configure Git authentication", () => (0, git_1.configureGitAuthentication)(gitUsername, gitPassword, stackName));
+                yield core.group("Configure Git authentication", () => (0, git_1.configureGitAuthentication)(gitUsername, gitPassword, encryptionKey, stackName));
             }
             if (gitCommitterName || gitCommitterEmail) {
                 yield core.group("Configure Git committer", () => __awaiter(this, void 0, void 0, function* () {
@@ -14982,7 +14990,7 @@ function setLicenseKey(licenseKey) {
     });
 }
 exports.setLicenseKey = setLicenseKey;
-function createEncryptionKey(stackName) {
+function createEncryptionKey() {
     return __awaiter(this, void 0, void 0, function* () {
         core.debug("Creating new encryption key...");
         const encryptionKey = yield execOrgFlow("auth:key:create", "--output=flat");
@@ -15127,11 +15135,10 @@ exports.setCommitterEmail = exports.setCommitterName = exports.configureGitAuthe
 const core = __nccwpck_require__(6024);
 const exec = __nccwpck_require__(2423);
 const cli_1 = __nccwpck_require__(4657);
-function configureGitAuthentication(username, password, stackName) {
+function configureGitAuthentication(username, password, encryptionKey, stackName) {
     return __awaiter(this, void 0, void 0, function* () {
         core.debug(`Configuring Git authentication for stack '${stackName}'...`);
-        // Save Git credentials locally encrypted with a unique encryption key:
-        const encryptionKey = yield (0, cli_1.createEncryptionKey)(stackName);
+        // Save Git credentials locally:
         yield (0, cli_1.saveGitCredentials)(username, password, encryptionKey, stackName);
         // Add OrgFlow as a Git credential helper:
         const orgFlowCredentialHelper = (0, cli_1.getCredentialHelperCommandLine)(encryptionKey, stackName);

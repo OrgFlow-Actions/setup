@@ -1,6 +1,6 @@
-# OrgFlow: Salesforce DevOps for GitHub
-
 <p><img src="logo.svg" alt="OrgFlow Logo" width="200"/></p>
+
+# OrgFlow: Salesforce DevOps for GitHub
 
 OrgFlow is a cross-platform DevOps tool that opens the Salesforce platform up to modern software development, version control, deployment and automation techniques.
 
@@ -35,19 +35,20 @@ Git version 2.25 or later is required. When running on GitHub-hosted runners or 
 
 ## Inputs
 
-| Name                  | Required? | Default                         | Description                                                                                                                                                                      |
-| --------------------- | :-------: | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`             |           |                                 | Version of OrgFlow to install. Can be specified as major '1', minor '1.1' or patch '1.1.1'; latest matching version will be installed. Omit to install latest available version. |
-| `include-prerelease`  |           | `"false"`                       | Include prerelease versions when determining latest available version.                                                                                                           |
-| `skip-install`        |           | `"false"`                       | Don't download and install OrgFlow (i.e. assume OrgFlow is already installed).                                                                                                   |
-| `license-key`         |  **Yes**  |                                 | Your OrgFlow license key (you can get one at https://www.orgflow.io/trial if you do not already have one).                                                                       |
-| `salesforce-username` |           |                                 | Save username for connecting to production Salesforce org (stored on runner in encrypted form).                                                                                  |
-| `salesforce-password` |           |                                 | Save password for connecting to production Salesforce org (stored on runner in encrypted form).                                                                                  |
-| `git-username`        |           |                                 | Save username for connecting to remote Git repository (not needed if connecting to a GitHub repository).                                                                         |
-| `git-password`        |           |                                 | Save access token or password for connecting to remote Git repository (use `secrets.GITHUB_TOKEN` if connecting to the current repository).                                      |
-| `git-committer-name`  |           | `"OrgFlow Default Committer"`   | Set name to use in committer signature when committing changes to Git repository.                                                                                                |
-| `git-committer-email` |           | `"defaultcommitter@orgflow.io"` | Set email address to use in committer signature when committing changes to Git repository.                                                                                       |
-| `stack-name`          |           |                                 | Name of OrgFlow stack to save credentials for (required when saving Salesforce or Git credentials).                                                                              |
+| Name                  | Required? | Default                         | Description                                                                                                                                                                       |
+| --------------------- | :-------: | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`             |           |                                 | Version of OrgFlow to install. Can be specified as major '1', minor '1.1' or patch '1.1.1'; latest matching version will be installed (omit to install latest available version). |
+| `include-prerelease`  |           | `"false"`                       | Include prerelease versions when determining latest available version.                                                                                                            |
+| `skip-install`        |           | `"false"`                       | Don't download and install OrgFlow (i.e. assume OrgFlow is already installed).                                                                                                    |
+| `license-key`         |  **Yes**  |                                 | Your OrgFlow license key (you can get one at https://www.orgflow.io/trial if you do not already have one).                                                                        |
+| `salesforce-username` |           |                                 | Save username for connecting to production Salesforce org (stored on runner in encrypted form).                                                                                   |
+| `salesforce-password` |           |                                 | Save password for connecting to production Salesforce org (stored on runner in encrypted form).                                                                                   |
+| `git-username`        |           |                                 | Save username for connecting to remote Git repository (not needed if connecting to a GitHub repository).                                                                          |
+| `git-password`        |           |                                 | Save access token or password for connecting to remote Git repository (use `secrets.GITHUB_TOKEN` if connecting to the current repository).                                       |
+| `git-committer-name`  |           | `"OrgFlow Default Committer"`   | Set name to use in committer signature when committing changes to Git repository.                                                                                                 |
+| `git-committer-email` |           | `"defaultcommitter@orgflow.io"` | Set email address to use in committer signature when committing changes to Git repository.                                                                                        |
+| `stack-name`          |           |                                 | Name of OrgFlow stack to save credentials for (required when saving Salesforce or Git credentials).                                                                               |
+| `encryption-key`      |           |                                 | Encryption key to use when encrypting and decrypting Salesforce and/or Git credentials (omit to generate a new encryption key).                                                   |
 
 ## Outputs
 
@@ -138,10 +139,15 @@ This is the simpler option, and is recommended if you intend to drive your DevOp
 Use the following inputs to this action to save the Salesforce credentials in encrypted form locally on the runner so that subsequent OrgFlow commands can authenticate with your Salesforce environments transparently:
 
 ```yaml
-with:
-  salesforce-username: ${{ secrets.SALESFORCE_USERNAME }}
-  salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
-  stack-name: SomeStack
+steps:
+  - uses: orgflow-actions/setup@v1
+    with:
+      # Store Salesforce credentials encrypted on the runner:
+      salesforce-username: ${{ secrets.SALESFORCE_USERNAME }}
+      salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
+      stack-name: SomeStack
+  # OrgFlow can now authenticate to Salesforce transparently:
+  - run: orgflow env:flowin --environment=SomeEnvironment
 ```
 
 ### 2. Store Salesforce credentials in OrgFlow's state store
@@ -150,33 +156,46 @@ This option is slighly more advanced and flexible, and can be useful if you want
 
 To use this option, use the [`auth:salesforce:save`](https://docs.orgflow.io/reference/commands/auth-salesforce-save.html) command in a local terminal session to encrypt and store your Salesforce credentials in the state store. Be sure to make note of the encryption key so that you can make it available as a secret to your workflows.
 
-With this option, you do not use the `salesforce-username` and `salesforce-password` with this action, but instead you must provide your encryption key as an argument to OrgFlow commands in your workflow to allow them to fetch and decrypt the Salesforce credentials from the state store and authenticate with your Salesforce environments transparently. Example:
+With this option, you do not use the `salesforce-username` and `salesforce-password` with this action, but instead you provide your existing encryption key using the `encryption-key` input. This key is then saved on the runner, allowing subsequent OrgFlow commands in your workflow to fetch and decrypt Salesforce credentials from the state store and authenticate with your Salesforce environments transparently. Example:
 
 ```yaml
 steps:
-  - run: orgflow env:flowmerge --from=Dev --into=QA --encryptionKey=${{ secrets.ORGFLOW_ENCRYPTIONKEY }}
+  - uses: orgflow-actions/setup@v1
+    with:
+      # Provide your own encryption key:
+      encryption-key: ${{ secrets.ORGFLOW_ENCRYPTIONKEY }}
+      stack-name: SomeStack
+  # OrgFlow can now authenticate to Salesforce transparently:
+  - run: orgflow env:flowin --environment=SomeEnvironment
 ```
+
+**Remember to use secrets to store any Salesforce credentials or encryption keys!**
 
 ## Git authentication
 
-OrgFlow uses a remote Git repository in order to store your Salesforce metadata, create branches, commit and push metadata changes, etc. While is common (and recommended) to keep the workflows that drive your Salesforce DevOps pipeline in the same repository as your actual Salesforce metadata, this is not a requirement. You can use any standard Git repository for this purpose, as long as it is reachable by the runner.
+OrgFlow uses a Git repository in order to store your Salesforce metadata, create branches, commit and push metadata changes, etc. While it's common (and recommended) to keep the workflows that drive your Salesforce DevOps pipeline in the same repository as your actual Salesforce metadata, this is not a requirement. You can use any standard Git repository for this purpose, as long as it is reachable by the runner.
 
 You configure which Git repository URL to use for metadata version control when you create your stack using the [`stack:create`](https://docs.orgflow.io/reference/commands/stack-create.html) command, which you normally run in a local terminal session as a one-time setup before building out your GitHub Actions based DevOps pipeline.
 
-**If your workflow runs in the same GitHub repository where you keep your Salesforce metadata, then you do not have to take any additional steps to set up Git authentication.**
+**If your workflow runs in the same GitHub repository where you keep your Salesforce metadata, you do not have to specify any Git credentials yourself.** This action will default to using the `GITHUB_TOKEN` secret automatically provided by GitHub to set up authentication against the repository. The access level granted by this token is subject to the security configuration of your repository.
 
 However, if your Salesforce metadata is kept in a different Git repository, then you can use the following inputs to this action to save the Git credentials in encrypted form locally on the runner so that subsequent OrgFlow commands can authenticate with your remote Git repository transparently:
 
 ```yaml
-with:
-  git-username: ${{ secrets.GIT_USERNAME }}
-  git-password: ${{ secrets.GIT_PASSWORD }}
-  stack-name: SomeStack
+steps:
+  - uses: orgflow-actions/setup@v1
+    with:
+      # Provide credentials for your Git repo:
+      git-username: ${{ secrets.GIT_USERNAME }}
+      git-password: ${{ secrets.GIT_PASSWORD }}
+      stack-name: SomeStack
+  # OrgFlow can now authenticate to Git transparently:
+  - run: orgflow env:flowin --environment=SomeEnvironment
 ```
 
 For most public Git services such as GitHub, Azure Repos, BitBucket etc., you would issue a _personal access token_ (PAT) and use this as the `git-password` input while omitting the `git-username` input.
 
-**Please use secrets to store your Git credentials!**
+**Remember to use secrets to store your Git credentials!**
 
 ## Other actions
 
