@@ -18,11 +18,12 @@ jobs:
       - run: ncc build index.ts --license licenses.txt
       - name: Commit & push
         run: |
-          git config --global user.name 'Build Workflow'
-          git config --global user.email 'defaultcommitter@orgflow.io'
           git add --force dist/index.js
           git add --force dist/licenses.txt
+          git status --porcelain
           if [[ `git status --porcelain` ]]; then
+            git config --global user.name "Build Workflow"
+            git config --global user.email "defaultcommitter@orgflow.io"
             git commit -m "Updates distributables"
             git push
           fi
