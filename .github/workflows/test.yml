@@ -3,7 +3,7 @@ name: Test
 on:
   push:
     paths:
-      - "dist/**"
+      - "**/*.js"
       - "action.yml"
       - ".github/workflows/test.yml"
 
