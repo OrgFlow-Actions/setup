@@ -47,7 +47,10 @@ export async function uploadDiagnosticsArtifact()
 	core.debug(`Recursive contents of artifact root path '${artifactRootPath}':`);
 	core.debug(stdout);
 
-	const artifactFiles = [...await readdir(bundleDirPath), ...await readdir(logDirPath)];
+	const artifactFiles = [
+		...(await readdir(bundleDirPath)).map(fileName => path.join(bundleDirPath, fileName)),
+		...(await readdir(logDirPath)).map(fileName => path.join(logDirPath, fileName))
+	];
 
 	if (artifactFiles.length)
 	{

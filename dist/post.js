@@ -9223,7 +9223,10 @@ function uploadDiagnosticsArtifact() {
         const { stdout } = yield exec.getExecOutput("ls", ["-R", artifactRootPath], { silent: true });
         core.debug(`Recursive contents of artifact root path '${artifactRootPath}':`);
         core.debug(stdout);
-        const artifactFiles = [...yield (0, promises_1.readdir)(bundleDirPath), ...yield (0, promises_1.readdir)(logDirPath)];
+        const artifactFiles = [
+            ...(yield (0, promises_1.readdir)(bundleDirPath)).map(fileName => path.join(bundleDirPath, fileName)),
+            ...(yield (0, promises_1.readdir)(logDirPath)).map(fileName => path.join(logDirPath, fileName))
+        ];
         if (artifactFiles.length) {
             core.debug(`Uploading ${artifactFiles.length} artifact files: ${artifactFiles.join(", ")}`);
             const client = artifact.create();
