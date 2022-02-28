@@ -1,8 +1,8 @@
 {
 	"name": "@orgflow-actions/setup",
-	"main": "dist/index.js",
+	"main": "dist/main.js",
 	"scripts": {
-		"build": "ncc build index.ts --license licenses.txt"
+		"build": "ncc build main.ts && mv dist/index.js dist/main.js && ncc build post.ts && mv dist/index.js dist/post.js"
 	},
 	"dependencies": {
 		"@actions/artifact": "~0.6.1",
