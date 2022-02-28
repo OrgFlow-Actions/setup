@@ -63,6 +63,6 @@ outputs:
   encryption-key:
     description: Encryption key that was saved.
 runs:
-  using: node16
+  using: node12
   main: dist/index.js
   post: dist/index.js
