@@ -1,1 +1,4 @@
-node_modules
+/node_modules
+# Dist files should not be committed by developers, will be built and committed by a workflow:
+/dist
+**/*.map

@@ -5,6 +5,7 @@
 		"build": "ncc build index.ts --license licenses.txt"
 	},
 	"dependencies": {
+		"@actions/artifact": "~0.6.1",
 		"@actions/core": "~1.6.0",
 		"@actions/exec": "~1.1.0",
 		"@actions/github": "~5.0.0",
