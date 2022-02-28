@@ -18,6 +18,7 @@ jobs:
       - run: ncc build index.ts --license licenses.txt
       - name: Commit & push
         run: |
+          git add --all
           git add --force dist/index.js
           git add --force dist/licenses.txt
           git status --porcelain
