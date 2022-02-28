@@ -1,9 +1,11 @@
-name: Test
+name: Test2
 
 on:
   push:
     paths:
-      - dist/**
+      - "**/*.js"
+      - "action.yml"
+      - ".github/workflows/test.yml"
 
 jobs:
 

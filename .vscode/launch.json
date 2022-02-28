@@ -9,7 +9,7 @@
 				"<node_internals>/**",
 				"${workspaceFolder}/node_modules/**/*.js"
 			],
-			"program": "${workspaceFolder}/index.ts",
+			"program": "${workspaceFolder}/main.ts",
 			"preLaunchTask": "tsc: build",
 			"outFiles": [
 				"${workspaceFolder}/dist/**/*.js"

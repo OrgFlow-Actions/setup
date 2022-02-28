@@ -64,5 +64,5 @@ outputs:
     description: Encryption key that was saved.
 runs:
   using: node16
-  main: dist/index.js
-  post: dist/index.js
+  main: dist/main.js
+  post: dist/post.js

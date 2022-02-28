@@ -2,22 +2,36 @@ name: Build
 
 on:
   push:
-    paths-ignore:
-      - dist/**
+    paths:
+      - "**/*.ts"
+      - "package.json"
+      - "tsconfig.json"
+      - ".github/workflows/build.yml"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: npm i -g @vercel/ncc
-      - run: npm install
-      - run: ncc build index.ts --license licenses.txt
+      - name: Install
+        run: |
+          npm i -g @vercel/ncc
+          npm install
+      - name: Build
+        run: |
+          ncc build main.ts
+          mv dist/index.js dist/main.js
+          ncc build post.ts
+          mv dist/index.js dist/post.js
       - name: Commit & push
         run: |
-          git config --global user.name 'Build Workflow'
-          git config --global user.email 'defaultcommitter@orgflow.io'
-          git add --force dist/index.js
-          git add --force dist/licenses.txt
-          git commit -m "Updates distributables"
-          git push
+          git add --all
+          git add --force dist/main.js
+          git add --force dist/post.js
+          git status --porcelain
+          if [[ `git status --porcelain` ]]; then
+            git config --global user.name "Build Workflow"
+            git config --global user.email "defaultcommitter@orgflow.io"
+            git commit -m "Updates distributables"
+            git push
+          fi

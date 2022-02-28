@@ -6,7 +6,7 @@ import * as core from "@actions/core";
 import { install } from "./lib/install";
 import { createEncryptionKey, saveEncryptionKey, saveSalesforceCredentials, setDefaultStack, setLicenseKey } from "./lib/cli";
 import { setCommitterEmail, setCommitterName, configureGitAuthentication } from "./lib/git";
-import { setDiagnostics, uploadDiagnosticsArtifact } from "./lib/diag";
+import { setDiagnostics } from "./lib/diag";
 
 export async function run()
 {
@@ -149,33 +149,4 @@ export async function run()
 	}
 }
 
-export async function post()
-{
-	try
-	{
-		const uploadArtifact =
-			core.getInput("upload-artifact") ? // getBooleanInput() will throw if input is not present, so guard against that
-				core.getBooleanInput("upload-artifact") :
-				true;
-
-		if (uploadArtifact)
-		{
-			await uploadDiagnosticsArtifact();
-		}
-	}
-	catch (error)
-	{
-		core.setFailed(error.message);
-	}
-}
-
-export const isPost = Boolean(process.env['STATE_isPost']);
-
-if (!isPost)
-{
-	run();
-}
-else
-{
-	post();
-}
+run();
