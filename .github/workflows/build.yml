@@ -22,5 +22,7 @@ jobs:
           git config --global user.email 'defaultcommitter@orgflow.io'
           git add --force dist/index.js
           git add --force dist/licenses.txt
-          git commit -m "Updates distributables"
-          git push
+          if [[ `git status --porcelain` ]]; then
+            git commit -m "Updates distributables"
+            git push
+          fi
