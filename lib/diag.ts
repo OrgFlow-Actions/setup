@@ -7,6 +7,7 @@ import * as io from "@actions/io";
 import * as artifact from "@actions/artifact";
 import * as exec from "@actions/exec";
 import * as path from "path";
+import { readdir } from "fs/promises";
 
 const tempDirPath = process.env.RUNNER_TEMP || process.env.TMPDIR;
 const artifactRootPath = path.join(tempDirPath, "OrgFlow");
@@ -41,10 +42,21 @@ export function setDiagnostics(logFileName: string, logLevel: string)
 
 export async function uploadDiagnosticsArtifact()
 {
-	const { stdout } = await exec.getExecOutput(`ls -R "${artifactRootPath}"`);
+	const { stdout } = await exec.getExecOutput("ls", ["-R", artifactRootPath], { silent: true });
 
+	core.debug(`Recursive contents of artifact root path '${artifactRootPath}':`);
 	core.debug(stdout);
 
-	const client = artifact.create();
-	await client.uploadArtifact(artifactName, [bundleDirPath, logDirPath], artifactRootPath, { continueOnError: true });
+	const artifactFiles = [...await readdir(bundleDirPath), ...await readdir(logDirPath)];
+
+	if (artifactFiles.length)
+	{
+		core.debug(`Uploading ${artifactFiles.length} artifact files: ${artifactFiles.join(", ")}`);
+		const client = artifact.create();
+		await client.uploadArtifact(artifactName, artifactFiles, artifactRootPath, { continueOnError: true });
+	}
+	else
+	{
+		core.debug("No artifact files no upload.");
+	}
 }

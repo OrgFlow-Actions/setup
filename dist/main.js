@@ -14967,6 +14967,7 @@ const io = __nccwpck_require__(6202);
 const artifact = __nccwpck_require__(6954);
 const exec = __nccwpck_require__(2423);
 const path = __nccwpck_require__(1017);
+const promises_1 = __nccwpck_require__(3292);
 const tempDirPath = process.env.RUNNER_TEMP || process.env.TMPDIR;
 const artifactRootPath = path.join(tempDirPath, "OrgFlow");
 const artifactName = "OrgFlowDiagnostics";
@@ -14991,10 +14992,18 @@ function setDiagnostics(logFileName, logLevel) {
 exports.setDiagnostics = setDiagnostics;
 function uploadDiagnosticsArtifact() {
     return __awaiter(this, void 0, void 0, function* () {
-        const { stdout } = yield exec.getExecOutput(`ls -R "${artifactRootPath}"`);
+        const { stdout } = yield exec.getExecOutput("ls", ["-R", artifactRootPath], { silent: true });
+        core.debug(`Recursive contents of artifact root path '${artifactRootPath}':`);
         core.debug(stdout);
-        const client = artifact.create();
-        yield client.uploadArtifact(artifactName, [bundleDirPath, logDirPath], artifactRootPath, { continueOnError: true });
+        const artifactFiles = [...yield (0, promises_1.readdir)(bundleDirPath), ...yield (0, promises_1.readdir)(logDirPath)];
+        if (artifactFiles.length) {
+            core.debug(`Uploading ${artifactFiles.length} artifact files: ${artifactFiles.join(", ")}`);
+            const client = artifact.create();
+            yield client.uploadArtifact(artifactName, artifactFiles, artifactRootPath, { continueOnError: true });
+        }
+        else {
+            core.debug("No artifact files no upload.");
+        }
     });
 }
 exports.uploadDiagnosticsArtifact = uploadDiagnosticsArtifact;
@@ -15417,6 +15426,14 @@ module.exports = require("events");
 
 "use strict";
 module.exports = require("fs");
+
+/***/ }),
+
+/***/ 3292:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs/promises");
 
 /***/ }),
 
