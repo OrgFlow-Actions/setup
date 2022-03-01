@@ -53,10 +53,14 @@ inputs:
     description: Verbosity level for OrgFlow diagnostic log files (verbose, debug, information, warning, error or fatal).
     required: false
     default: verbose
-  upload-artifact:
+  upload-diag-artifact:
     description: Set to 'false' to disable uploading of all OrgFlow diagnostic log files and bundles during post-job processing.
     required: false
     default: "true"
+  diag-artifact-name:
+    description: Name to use for the artifact when uploading OrgFlow diagnostic log files and bundles.
+    required: false
+    default: orgflow_diag_${{ github.job }}_${{ github.run_attempt }}
 outputs:
   version:
     description: Exact version of OrgFlow that was installed and/or configured.

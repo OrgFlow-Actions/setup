@@ -10,13 +10,15 @@ export async function run()
 	try
 	{
 		const uploadArtifact =
-			core.getInput("upload-artifact") ? // getBooleanInput() will throw if input is not present, so guard against that
-				core.getBooleanInput("upload-artifact") :
+			core.getInput("upload-diag-artifact") ? // getBooleanInput() will throw if input is not present, so guard against that
+				core.getBooleanInput("upload-diag-artifact") :
 				true;
+
+		const artifactName = core.getInput("diag-artifact-name");
 
 		if (uploadArtifact)
 		{
-			await uploadDiagnosticsArtifact();
+			await uploadDiagnosticsArtifact(artifactName);
 		}
 	}
 	catch (error)

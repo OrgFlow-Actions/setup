@@ -6,13 +6,11 @@ import * as core from "@actions/core";
 import * as io from "@actions/io";
 import * as artifact from "@actions/artifact";
 import * as exec from "@actions/exec";
-import * as github from "@actions/github";
 import * as path from "path";
 import { readdir } from "fs/promises";
 
 const tempDirPath = process.env.RUNNER_TEMP || process.env.TMPDIR;
 const artifactRootPath = path.join(tempDirPath, "OrgFlow");
-const artifactName = `orgflow_diag_${github.context.job}_${github.context.runNumber}`;
 
 if (!tempDirPath)
 {
@@ -24,7 +22,6 @@ const bundleDirPath = path.join(artifactRootPath, "bundles")
 
 core.debug(`Diagnostic log directory: ${logDirPath}`);
 core.debug(`Diagnostic bundle directory: ${bundleDirPath}`);
-core.debug(`Diagnostic artifact name: ${artifactName}`);
 
 export function setDiagnostics(logFileName: string, logLevel: string)
 {
@@ -42,7 +39,7 @@ export function setDiagnostics(logFileName: string, logLevel: string)
 	core.exportVariable("ORGFLOW_LOGLEVEL", logLevel);
 }
 
-export async function uploadDiagnosticsArtifact()
+export async function uploadDiagnosticsArtifact(artifactName: string)
 {
 	const { stdout } = await exec.getExecOutput("ls", ["-R", artifactRootPath], { silent: true });
 
