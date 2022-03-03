@@ -37,6 +37,10 @@ export function setDiagnostics(logFileName: string, logLevel: string)
 	core.exportVariable("ORGFLOW_DIAGNOSTICSFILEDIRECTORYPATH", bundleDirPath);
 	core.exportVariable("ORGFLOW_LOGFILEPATH", logFilePath);
 	core.exportVariable("ORGFLOW_LOGLEVEL", logLevel);
+
+	// Have OrgFlow output errors and warnings in a way that GitHub will recognize:
+	core.exportVariable("ORGFLOW_OUTPUTTEMPLATE_WARNING", "::warning title=OrgFlow Warning::$$msg$$");
+	core.exportVariable("ORGFLOW_OUTPUTTEMPLATE_ERROR", "::error title=OrgFlow Error::$$msg$$");
 }
 
 export async function uploadDiagnosticsArtifact(artifactName: string)
