@@ -27,7 +27,7 @@ export async function setCommitterName(committerName: string)
 {
 	core.debug(`Setting Git committer name globally as '${committerName}'...`);
 
-	await execGit("config", "--global", "user.name", `"${committerName}"`);
+	await execGit("config", "--global", "user.name", committerName);
 
 	core.debug("Git committer name was set successfully.");
 }
@@ -36,14 +36,14 @@ export async function setCommitterEmail(committerEmail: string)
 {
 	core.debug(`Setting Git committer email globally as '${committerEmail}'...`);
 
-	await execGit("config", "--global", "user.email", `"${committerEmail}"`);
+	await execGit("config", "--global", "user.email", committerEmail);
 
 	core.debug("Git committer email was set successfully.");
 }
 
 async function addCredentialHelper(credentialHelper: string)
 {
-	await execGit("config", "--global", "--add", "credential.helper", `"${credentialHelper}"`);
+	await execGit("config", "--global", "--add", "credential.helper", credentialHelper);
 }
 
 async function execGit(commandName: string, ...args: string[])

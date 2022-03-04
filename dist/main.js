@@ -15105,7 +15105,7 @@ exports.configureGitAuthentication = configureGitAuthentication;
 function setCommitterName(committerName) {
     return __awaiter(this, void 0, void 0, function* () {
         core.debug(`Setting Git committer name globally as '${committerName}'...`);
-        yield execGit("config", "--global", "user.name", `"${committerName}"`);
+        yield execGit("config", "--global", "user.name", committerName);
         core.debug("Git committer name was set successfully.");
     });
 }
@@ -15113,14 +15113,14 @@ exports.setCommitterName = setCommitterName;
 function setCommitterEmail(committerEmail) {
     return __awaiter(this, void 0, void 0, function* () {
         core.debug(`Setting Git committer email globally as '${committerEmail}'...`);
-        yield execGit("config", "--global", "user.email", `"${committerEmail}"`);
+        yield execGit("config", "--global", "user.email", committerEmail);
         core.debug("Git committer email was set successfully.");
     });
 }
 exports.setCommitterEmail = setCommitterEmail;
 function addCredentialHelper(credentialHelper) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield execGit("config", "--global", "--add", "credential.helper", `"${credentialHelper}"`);
+        yield execGit("config", "--global", "--add", "credential.helper", credentialHelper);
     });
 }
 function execGit(commandName, ...args) {
