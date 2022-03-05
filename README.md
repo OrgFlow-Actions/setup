@@ -65,6 +65,10 @@ Git version 2.25 or later is required. When running on GitHub-hosted runners or 
 
 ## Examples
 
+See our [demo repository](https://github.com/OrgFlow-Actions/demo) for a set of complete sample workflows using this action. There you will also find a guided tutorial on how to set up a working end-to-end Salesforce DevOps pipeline using GitHub Actions.
+
+Below are some very basic examples.
+
 Install latest version and run a simple command to list all the current stacks in your OrgFlow account:
 
 ```yaml
