@@ -11,6 +11,6 @@ insert_final_newline	 = false
 # bash/zsh cannot parse script files with crlf line endings
 end_of_line              = lf
 
-[*.{yaml,yml}]
+[*.{yaml,yml,md}]
 indent_style = space
 indent_size = 2

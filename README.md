@@ -25,13 +25,18 @@ The following configuration steps can be performed by this action:
 
 Running this action at the start of your workflow job allows you to run any OrgFlow commands with minimal hassle in subsequent steps of your job, without having to provide any of the above configuration again.
 
+See also:
+
+- Our [`demo`](https://github.com/OrgFlow-Actions/demo) template repository that contains a set of basic sample workflows that show how to use OrgFlow in GitHub Actions
+- Our [`result2comment`](https://github.com/OrgFlow-Actions/result2comment) action which allows you to post the results of an OrgFlow command as a comment on a GitHub issue or pull request
+
 ## Supported platforms
 
 This action works on:
 
 - GitHub-hosted runners and self-hosted runners
 - Ubuntu, macOS and Windows
-- The `orgflow/cli` Docker image, or your own Docker image
+- With or without a container (also works with the `orgflow/cli` Docker image)
 
 Git version 2.25 or later is required. When running on GitHub-hosted runners or on our Docker images, all requirements are met.
 
@@ -206,12 +211,6 @@ steps:
 For most public Git services such as GitHub, Azure Repos, BitBucket etc., you would issue a _personal access token_ (PAT) and use this as the `git-password` input while omitting the `git-username` input.
 
 **Remember to use secrets to store your Git credentials!**
-
-## Other actions
-
-We also maintain several other useful actions, which complement this one to provide deep first-class integration of OrgFlow into GitHub Actions:
-
-- [`comment-env-flowout-result`](https://github.com/OrgFlow-Actions/comment-env-flowout-result)
 
 ## Versioning
 
