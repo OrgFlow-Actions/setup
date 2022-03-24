@@ -28,7 +28,7 @@ Running this action at the start of your workflow job allows you to run any OrgF
 See also:
 
 - Our [`demo`](https://github.com/OrgFlow-Actions/demo) template repository that contains a set of basic sample workflows that show how to use OrgFlow in GitHub Actions
-- Our [`result2comment`](https://github.com/OrgFlow-Actions/result2comment) action which allows you to post the results of an OrgFlow command as a comment on a GitHub issue or pull request
+- Our [`result-to-comment`](https://github.com/OrgFlow-Actions/result-to-comment) action which allows you to post the results of an OrgFlow command as a comment on a GitHub issue or pull request
 
 ## Supported platforms
 
