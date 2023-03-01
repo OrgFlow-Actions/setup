@@ -11,7 +11,7 @@ jobs:
 
   setup_job:
     runs-on: ubuntu-latest
-    container: orgflow/cli:1.4.x
+    container: orgflow/cli:2.0
     name: Setup
     outputs:
       stack-name: ${{ steps.create_stack.outputs.stack-name }}
@@ -41,7 +41,7 @@ jobs:
         uses: ./
         id: setup
         with:
-          version: "1.4"
+          version: "2.0"
           license-key: ${{ secrets.ORGFLOW_LICENSEKEY }}
           salesforce-username: ${{ secrets.SALESFORCE_USERNAME }}
           salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
@@ -61,7 +61,7 @@ jobs:
 
   teardown_job:
     runs-on: ubuntu-latest
-    container: orgflow/cli:1.4.x
+    container: orgflow/cli:2.x
     name: Teardown
     needs: [setup_job, test_job]
     if: ${{ always() }}
