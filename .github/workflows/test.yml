@@ -21,7 +21,7 @@ jobs:
         run: |
           mkdir /tmp/$STACKNAME
           git init --bare -b main /tmp/$STACKNAME
-          orgflow stack:create --name=$STACKNAME --gitRepoUrl=/tmp/$STACKNAME --signInUrl="https://orgflowgmbh2-dev-ed.my.salesforce.com" --username="${{ secrets.SALESFORCE_USERNAME }}" --password="${{ secrets.SALESFORCE_PASSWORD }}" --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
+          orgflow stack:create --name=$STACKNAME --gitRepoUrl=/tmp/$STACKNAME --signInUrl='https://orgflowgmbh2-dev-ed.my.salesforce.com' --username='${{ secrets.SALESFORCE_USERNAME }}' --password='${{ secrets.SALESFORCE_PASSWORD }}' --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
           echo "stack-name=$STACKNAME" >> $GITHUB_OUTPUT
         env:
           STACKNAME: TestStack_${{ github.run_id }}_${{ github.run_number }}
