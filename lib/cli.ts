@@ -50,7 +50,12 @@ export async function createEncryptionKey()
 {
 	core.debug("Creating new encryption key...");
 
-	const encryptionKey = await execOrgFlow("auth:key:create");
+	const version = await getInstalledVersion();
+
+	const encryptionKey = 
+		version.startsWith("1.")
+			? await execOrgFlow("auth:key:create", "--output=flat")
+			: await execOrgFlow("auth:key:create");
 
 	core.debug("New encryption key was successfully created.");
 
