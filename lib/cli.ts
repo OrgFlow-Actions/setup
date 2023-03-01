@@ -50,7 +50,7 @@ export async function createEncryptionKey()
 {
 	core.debug("Creating new encryption key...");
 
-	const encryptionKey = await execOrgFlow("auth:key:create", "--output=flat");
+	const encryptionKey = await execOrgFlow("auth:key:create");
 
 	core.debug("New encryption key was successfully created.");
 
