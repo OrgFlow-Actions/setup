@@ -14875,7 +14875,9 @@ function createEncryptionKey() {
     return __awaiter(this, void 0, void 0, function* () {
         core.debug("Creating new encryption key...");
         const version = yield getInstalledVersion();
-        const encryptionKey = version.startsWith("1.")
+        const useFlatOutput = version.startsWith("1.");
+        core.debug(`Version: ${version}, use flat output: ${useFlatOutput}`);
+        const encryptionKey = useFlatOutput
             ? yield execOrgFlow("auth:key:create", "--output=flat")
             : yield execOrgFlow("auth:key:create");
         core.debug("New encryption key was successfully created.");
