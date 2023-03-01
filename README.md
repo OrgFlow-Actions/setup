@@ -91,17 +91,17 @@ jobs:
       - run: orgflow stack:list
 ```
 
-Install latest 1.3.x version, save Salesforce credentials and flow metadata changes from one sandbox environment to another:
+Install latest 2.0.x version, save Salesforce credentials and flow metadata changes from one sandbox environment to another:
 
 ```yaml
 jobs:
   orgflow_job:
     runs-on: ubuntu-latest
     steps:
-      # Download and install latest 1.3.x version
+      # Download and install latest 2.0.x version
       - uses: orgflow-actions/setup@v1
         with:
-          version: "1.3"
+          version: "2.0"
           license-key: ${{ secrets.ORGFLOW_LICENSEKEY }}
           salesforce-username: ${{ secrets.SALESFORCE_USERNAME }}
           salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
@@ -216,7 +216,7 @@ For most public Git services such as GitHub, Azure Repos, BitBucket etc., you wo
 
 All of our `orgflow-actions/*` actions are semantically versioned. Breaking changes will cause a major version bump.
 
-All releases are tagged with a full version number, e.g. `v1.0.0`. You can use these tags to pin your workflow to a specific release, e.g. `@v1.0.0`.
+All releases are tagged with a full version number, e.g. `v1.1.0`. You can use these tags to pin your workflow to a specific release, e.g. `@v1.1.0`.
 
 We also maintain branches for each major version of our actions, and you can reference branch names to ensure that you are using the most up to date version of this action for a specific major version. For example `@v1` would cause your workflow to automatically use the most up to date `v1.x.x` version of this action.
 

@@ -12,7 +12,7 @@ jobs:
 
   setup_job:
     runs-on: ubuntu-latest
-    container: orgflow/cli:1.4.x
+    container: orgflow/cli:2.x
     name: Setup
     outputs:
       stack-name: ${{ steps.create_stack.outputs.stack-name }}
@@ -22,8 +22,8 @@ jobs:
         run: |
           mkdir /tmp/$STACKNAME
           git init --bare -b main /tmp/$STACKNAME
-          orgflow stack:create --name=$STACKNAME --gitRepoUrl=/tmp/$STACKNAME --username=${{ secrets.SALESFORCE_USERNAME }} --password=${{ secrets.SALESFORCE_PASSWORD }} --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
-          echo "::set-output name=stack-name::$STACKNAME"
+          orgflow stack:create --name=$STACKNAME --gitRepoUrl=/tmp/$STACKNAME --username='${{ secrets.SALESFORCE_USERNAME }}' --password='${{ secrets.SALESFORCE_PASSWORD }}' --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
+          echo "stack-name=$STACKNAME" >> $GITHUB_OUTPUT
         env:
           STACKNAME: TestStack_${{ github.run_id }}_${{ github.run_number }}
 
@@ -34,15 +34,16 @@ jobs:
     strategy:
       matrix:
         image: [ubuntu-latest, macos-latest, windows-latest]
+        version: [1, 2]
       fail-fast: false
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up OrgFlow
         uses: ./
         id: setup
         with:
-          version: "1.4"
+          version: ${{ matrix.version }}
           license-key: ${{ secrets.ORGFLOW_LICENSEKEY }}
           salesforce-username: ${{ secrets.SALESFORCE_USERNAME }}
           salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
@@ -62,7 +63,7 @@ jobs:
 
   teardown_job:
     runs-on: ubuntu-latest
-    container: orgflow/cli:1.4.x
+    container: orgflow/cli:2.x
     name: Teardown
     needs: [setup_job, test_job]
     if: ${{ always() }}
