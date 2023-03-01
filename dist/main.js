@@ -14876,7 +14876,7 @@ function createEncryptionKey() {
         core.debug("Creating new encryption key...");
         const version = yield getInstalledVersion();
         const useFlatOutput = version.startsWith("1.");
-        core.debug(`Version: ${version}, use flat output: ${useFlatOutput}`);
+        core.debug(`Version: ${version}, use flat output: ${useFlatOutput}.`);
         const encryptionKey = useFlatOutput
             ? yield execOrgFlow("auth:key:create", "--output=flat")
             : yield execOrgFlow("auth:key:create");
