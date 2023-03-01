@@ -53,7 +53,7 @@ export async function createEncryptionKey()
 	const version = await getInstalledVersion();
 	const useFlatOutput = version.startsWith("1.");
 
-	core.debug(`Version: ${version}, use flat output: ${useFlatOutput}`);
+	core.debug(`Version: ${version}, use flat output: ${useFlatOutput}.`);
 
 	const encryptionKey = 
 		useFlatOutput
