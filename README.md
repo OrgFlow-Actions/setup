@@ -86,7 +86,7 @@ jobs:
         with:
           license-key: ${{ secrets.ORGFLOW_LICENSEKEY }}
         env:
-          ORGFLOW_ACCEPTEULA: "true"
+          ORGFLOW__ACCEPTEULA: "true"
       # Run command to list stacks in your account
       - run: orgflow stack:list
 ```
@@ -107,7 +107,7 @@ jobs:
           salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
           stack-name: MyStack
         env:
-          ORGFLOW_ACCEPTEULA: "true"
+          ORGFLOW__ACCEPTEULA: "true"
       # Run command to flow changes from Dev sandbox into QA sandbox
       - run: orgflow env:flowmerge --from=Dev --into=QA
 ```

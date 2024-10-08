@@ -15778,16 +15778,16 @@ function setDiagnostics(logFileName, logLevel) {
     io.mkdirP(logDirPath);
     io.mkdirP(bundleDirPath);
     const logFilePath = path.join(logDirPath, logFileName);
-    core.debug(`Setting ORGFLOW_DIAGNOSTICSFILEDIRECTORYPATH=${bundleDirPath}`);
-    core.debug(`Setting ORGFLOW_LOGFILEPATH=${logFilePath}`);
-    core.exportVariable("ORGFLOW_DIAGNOSTICBUNDLEMODE", "always");
-    core.exportVariable("ORGFLOW_DIAGNOSTICSFILEDIRECTORYPATH", bundleDirPath);
-    core.exportVariable("ORGFLOW_LOGFILEPATH", logFilePath);
-    core.exportVariable("ORGFLOW_LOGLEVEL", logLevel);
-    core.exportVariable("ORGFLOW_DEPLOYMENTS__ENABLEFASTCANCELLATION", "true");
+    core.debug(`Setting ORGFLOW__DIAGNOSTICSFILEDIRECTORYPATH=${bundleDirPath}`);
+    core.debug(`Setting ORGFLOW__LOGFILEPATH=${logFilePath}`);
+    core.exportVariable("ORGFLOW__DIAGNOSTICBUNDLEMODE", "always");
+    core.exportVariable("ORGFLOW__DIAGNOSTICSFILEDIRECTORYPATH", bundleDirPath);
+    core.exportVariable("ORGFLOW__LOGFILEPATH", logFilePath);
+    core.exportVariable("ORGFLOW__LOGLEVEL", logLevel);
+    core.exportVariable("ORGFLOW__DEPLOYMENTS__ENABLEFASTCANCELLATION", "true");
     // Have OrgFlow output errors and warnings in a way that GitHub will recognize:
-    core.exportVariable("ORGFLOW_OUTPUTTEMPLATE_WARNING", "::warning title=OrgFlow Warning::$$msg$$");
-    core.exportVariable("ORGFLOW_OUTPUTTEMPLATE_ERROR", "::error title=OrgFlow Error::$$msg$$");
+    core.exportVariable("ORGFLOW__OUTPUTTEMPLATE_WARNING", "::warning title=OrgFlow Warning::$$msg$$");
+    core.exportVariable("ORGFLOW__OUTPUTTEMPLATE_ERROR", "::error title=OrgFlow Error::$$msg$$");
 }
 exports.setDiagnostics = setDiagnostics;
 function uploadDiagnosticsArtifact(artifactName) {

@@ -52,7 +52,7 @@ jobs:
           stack-name: ${{ needs.setup_job.outputs.stack-name }}
           diag-artifact-name: orgflow_diag_${{ matrix.image }}_${{ github.run_attempt }}
         env:
-          ORGFLOW_ACCEPTEULA: "true"
+          ORGFLOW__ACCEPTEULA: "true"
       - name: Print outputs
         run: |
           echo "Version: ${{ steps.setup.outputs.version }}"
