@@ -38,7 +38,7 @@ This action works on:
 - Ubuntu, macOS and Windows
 - With or without a container (also works with the `orgflow/cli` Docker image)
 
-Git version 2.25 or later is required. When running on GitHub-hosted runners or on our Docker images, all requirements are met.
+Git version 2.39 or later is required. When running on GitHub-hosted runners or on our Docker images, all requirements are met.
 
 ## Inputs
 

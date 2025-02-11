@@ -4,9 +4,9 @@
 
 import * as core from "@actions/core";
 import * as io from "@actions/io";
-import * as artifact from "@actions/artifact";
 import * as exec from "@actions/exec";
 import * as path from "path";
+import { DefaultArtifactClient } from "@actions/artifact";
 import { readdir } from "fs/promises";
 
 const tempDirPath = process.env.RUNNER_TEMP || process.env.TMPDIR;
@@ -59,8 +59,8 @@ export async function uploadDiagnosticsArtifact(artifactName: string)
 	if (artifactFiles.length)
 	{
 		core.debug(`Uploading ${artifactFiles.length} artifact files: ${artifactFiles.join(", ")}`);
-		const client = artifact.create();
-		await client.uploadArtifact(artifactName, artifactFiles, artifactRootPath, { continueOnError: true });
+		const client = new DefaultArtifactClient();
+		await client.uploadArtifact(artifactName, artifactFiles, artifactRootPath);
 	}
 	else
 	{
