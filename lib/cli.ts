@@ -36,14 +36,14 @@ export async function getInstalledVersion()
 	return installedVersion;
 }
 
-export async function setLicenseKey(licenseKey: string)
+export async function setAccessToken(accessToken: string)
 {
-	core.debug("Validating license key...");
+	core.debug("Validating access token...");
 
-	// Use the stack:list command to set license key (somewhat arbitrary, we currently don't have a better way).
-	await execOrgFlow("stack:list", `--licenseKey=${licenseKey}`);
+	// Use the stack:list command to set access token (somewhat arbitrary, we currently don't have a better way).
+	await execOrgFlow("stack:list", `--accessToken=${accessToken}`);
 
-	core.debug("License key was successfully validated and saved.");
+	core.debug("Access token was successfully validated and saved.");
 }
 
 export async function createEncryptionKey()

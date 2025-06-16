@@ -4,7 +4,7 @@
 
 import * as core from "@actions/core";
 import { install } from "./lib/install";
-import { createEncryptionKey, saveEncryptionKey, saveSalesforceCredentials, setDefaultStack, setLicenseKey } from "./lib/cli";
+import { createEncryptionKey, saveEncryptionKey, saveSalesforceCredentials, setDefaultStack, setAccessToken } from "./lib/cli";
 import { setCommitterEmail, setCommitterName, configureGitAuthentication } from "./lib/git";
 import { setDiagnostics } from "./lib/diag";
 
@@ -26,10 +26,10 @@ export async function run()
 				core.getBooleanInput("skip-install") :
 				false;
 
-		const licenseKey = core.getInput("license-key");
-		if (!licenseKey)
+		const accessToken = core.getInput("access-token");
+		if (!accessToken)
 		{
-			core.setFailed("Input value 'license-key' is required.");
+			core.setFailed("Input value 'access-token' is required.");
 		}
 
 		const salesforceUsername = core.getInput("salesforce-username");
@@ -82,9 +82,9 @@ export async function run()
 
 		core.setOutput("version", installedVersion);
 
-		// Validate and save license key:
+		// Validate and save access token:
 
-		await core.group("Set license key", () => setLicenseKey(licenseKey));
+		await core.group("Set access token", () => setAccessToken(accessToken));
 
 		// Create (if needed) and save encryption key:
 

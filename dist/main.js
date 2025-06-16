@@ -110793,7 +110793,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setDefaultStack = exports.getCredentialHelperCommandLine = exports.saveGitCredentials = exports.saveSalesforceCredentials = exports.saveEncryptionKey = exports.createEncryptionKey = exports.setLicenseKey = exports.getInstalledVersion = void 0;
+exports.setDefaultStack = exports.getCredentialHelperCommandLine = exports.saveGitCredentials = exports.saveSalesforceCredentials = exports.saveEncryptionKey = exports.createEncryptionKey = exports.setAccessToken = exports.getInstalledVersion = void 0;
 const core = __nccwpck_require__(78167);
 const io = __nccwpck_require__(30921);
 const exec = __nccwpck_require__(2471);
@@ -110821,15 +110821,15 @@ function getInstalledVersion() {
     });
 }
 exports.getInstalledVersion = getInstalledVersion;
-function setLicenseKey(licenseKey) {
+function setAccessToken(accessToken) {
     return __awaiter(this, void 0, void 0, function* () {
-        core.debug("Validating license key...");
-        // Use the stack:list command to set license key (somewhat arbitrary, we currently don't have a better way).
-        yield execOrgFlow("stack:list", `--licenseKey=${licenseKey}`);
-        core.debug("License key was successfully validated and saved.");
+        core.debug("Validating access token...");
+        // Use the stack:list command to set access token (somewhat arbitrary, we currently don't have a better way).
+        yield execOrgFlow("stack:list", `--accessToken=${accessToken}`);
+        core.debug("Access token was successfully validated and saved.");
     });
 }
-exports.setLicenseKey = setLicenseKey;
+exports.setAccessToken = setAccessToken;
 function createEncryptionKey() {
     return __awaiter(this, void 0, void 0, function* () {
         core.debug("Creating new encryption key...");
@@ -111265,9 +111265,9 @@ function run() {
             const skipInstall = core.getInput("skip-install") ? // getBooleanInput() will throw if input is not present, so guard against that
                 core.getBooleanInput("skip-install") :
                 false;
-            const licenseKey = core.getInput("license-key");
-            if (!licenseKey) {
-                core.setFailed("Input value 'license-key' is required.");
+            const accessToken = core.getInput("access-token");
+            if (!accessToken) {
+                core.setFailed("Input value 'access-token' is required.");
             }
             const salesforceUsername = core.getInput("salesforce-username");
             const salesforcePassword = core.getInput("salesforce-password");
@@ -111303,8 +111303,8 @@ function run() {
             // Download and install:
             const installedVersion = yield core.group("Install", () => (0, install_1.install)(versionSpec, includePrerelease, skipInstall));
             core.setOutput("version", installedVersion);
-            // Validate and save license key:
-            yield core.group("Set license key", () => (0, cli_1.setLicenseKey)(licenseKey));
+            // Validate and save access token:
+            yield core.group("Set access token", () => (0, cli_1.setAccessToken)(accessToken));
             // Create (if needed) and save encryption key:
             const encryptionKey = yield core.group("Save encryption key", () => __awaiter(this, void 0, void 0, function* () {
                 const encryptionKey = encryptionKeyInput || (yield (0, cli_1.createEncryptionKey)());
