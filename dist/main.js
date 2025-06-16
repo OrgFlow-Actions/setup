@@ -111303,7 +111303,7 @@ function run() {
             // Download and install:
             const installedVersion = yield core.group("Install", () => (0, install_1.install)(versionSpec, includePrerelease, skipInstall));
             core.setOutput("version", installedVersion);
-            // Validate and save access token token:
+            // Validate and save access token:
             yield core.group("Set access token", () => (0, cli_1.setAccessToken)(accessToken));
             // Create (if needed) and save encryption key:
             const encryptionKey = yield core.group("Save encryption key", () => __awaiter(this, void 0, void 0, function* () {
