@@ -12,7 +12,7 @@ jobs:
 
   setup_job:
     runs-on: ubuntu-latest
-    container: orgflow/cli:2.x
+    container: orgflow/cli:3.x
     name: Setup
     outputs:
       stack-name: ${{ steps.create_stack.outputs.stack-name }}
@@ -22,7 +22,7 @@ jobs:
         run: |
           mkdir /tmp/$STACKNAME
           git init --bare -b main /tmp/$STACKNAME
-          orgflow stack:create --name=$STACKNAME --gitRepoUrl=/tmp/$STACKNAME --username='${{ secrets.SALESFORCE_USERNAME }}' --password='${{ secrets.SALESFORCE_PASSWORD }}' --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula
+          orgflow stack:create --name=$STACKNAME --gitRepoUrl=/tmp/$STACKNAME --username='${{ secrets.SALESFORCE_USERNAME }}' --password='${{ secrets.SALESFORCE_PASSWORD }}' --accessToken=${{ secrets.ORGFLOW_ACCESSTOKEN }} --acceptEula
           echo "stack-name=$STACKNAME" >> $GITHUB_OUTPUT
         env:
           STACKNAME: TestStack_${{ github.run_id }}_${{ github.run_number }}
@@ -44,7 +44,7 @@ jobs:
         id: setup
         with:
           version: ${{ matrix.version }}
-          license-key: ${{ secrets.ORGFLOW_LICENSEKEY }}
+          access-token: ${{ secrets.ORGFLOW_ACCESSTOKEN }}
           salesforce-username: ${{ secrets.SALESFORCE_USERNAME }}
           salesforce-password: ${{ secrets.SALESFORCE_PASSWORD }}
           git-username: DimitriusWoodward # Bogus
@@ -63,13 +63,13 @@ jobs:
 
   teardown_job:
     runs-on: ubuntu-latest
-    container: orgflow/cli:2.x
+    container: orgflow/cli:3.x
     name: Teardown
     needs: [setup_job, test_job]
     if: ${{ always() }}
     steps:
       - name: Delete temporary stack
         run: |
-          orgflow stack:delete --name=$STACKNAME --licenseKey=${{ secrets.ORGFLOW_LICENSEKEY }} --acceptEula --noConfirm
+          orgflow stack:delete --name=$STACKNAME --accessToken=${{ secrets.ORGFLOW_ACCESSTOKEN }} --acceptEula --noConfirm
         env:
           STACKNAME: ${{ needs.setup_job.outputs.stack-name }}
