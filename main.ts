@@ -82,7 +82,7 @@ export async function run()
 
 		core.setOutput("version", installedVersion);
 
-		// Validate and save access token token:
+		// Validate and save access token:
 
 		await core.group("Set access token", () => setAccessToken(accessToken));
 
